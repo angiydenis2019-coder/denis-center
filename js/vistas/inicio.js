@@ -35,7 +35,7 @@ export async function vistaInicio(app) {
     <div class="resumen">
       <div class="tarjeta"><div class="sub">Turnos de hoy</div><div class="numero">${turnosHoy.length}</div></div>
       <div class="tarjeta"><div class="sub">Turnos pendientes</div><div class="numero">${turnos.data.length}</div></div>
-      <div class="tarjeta"><div class="sub">Me deben</div><div class="numero deuda">${pesos(totalDeuda)}</div></div>
+      <a class="tarjeta" href="#/resumen"><div class="sub">Me deben · ver resumen ›</div><div class="numero deuda">${pesos(totalDeuda)}</div></a>
       <div class="tarjeta"><div class="sub">Clientes</div><div class="numero">${clientes.count ?? 0}</div></div>
     </div>
 

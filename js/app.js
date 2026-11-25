@@ -8,6 +8,7 @@ import { vistaTrabajoDetalle, vistaTrabajoFormulario } from './vistas/trabajos.j
 import { vistaAjustes } from './vistas/ajustes.js';
 import { vistaAgenda } from './vistas/agenda.js';
 import { vistaPrecios } from './vistas/precios.js';
+import { vistaResumen } from './vistas/resumen.js';
 import { cargarNegocio } from './negocio.js';
 import { esc } from './util.js';
 
@@ -32,6 +33,7 @@ const rutas = {
   'ajustes':        () => vistaAjustes(app),
   'agenda':         () => vistaAgenda(app),
   'precios':        () => vistaPrecios(app),
+  'resumen':        () => vistaResumen(app),
   'trabajo-editar': (id, extra) => vistaTrabajoFormulario(app, { id, completar: extra === 'completar' }),
 };
 

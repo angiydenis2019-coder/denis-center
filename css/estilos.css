@@ -196,3 +196,20 @@ p.ayuda a, .dato a { color: var(--azul); }
 .enlace-fila { display: flex; justify-content: space-between; padding: 12px 0; color: var(--texto); text-decoration: none; font-weight: 600; border-bottom: 1px dashed var(--borde); }
 .enlace-fila:last-child { border-bottom: 0; }
 .enlace-fila span { color: var(--gris); }
+
+/* --- Resumen --- */
+.txt-deuda { color: var(--rojo); }
+.barra-fila { margin: 10px 0; }
+.barra-pista { height: 8px; background: var(--fondo); border-radius: 4px; margin-top: 4px; }
+.barra-relleno { height: 8px; background: var(--azul); border-radius: 4px; }
+.grafico { display: flex; align-items: flex-end; gap: 6px; height: 180px; padding-top: 18px; }
+.col { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; min-width: 0; }
+.col-barra { width: 70%; max-width: 44px; background: #7fa9bf; border-radius: 4px 4px 0 0; min-height: 2px; }
+.col.actual .col-barra { background: var(--azul); }
+.col-valor { font-size: .62rem; color: var(--gris); margin-bottom: 3px; white-space: nowrap; }
+.col.actual .col-valor { color: var(--texto); font-weight: 700; }
+.col-mes { font-size: .78rem; color: var(--gris); margin-top: 4px; text-transform: capitalize; }
+.tabla { width: 100%; border-collapse: collapse; margin-top: 8px; font-size: .9rem; }
+.tabla th, .tabla td { text-align: left; padding: 6px 4px; border-bottom: 1px solid var(--borde); }
+.tabla td:last-child, .tabla th:last-child { text-align: right; }
+.btn:disabled { cursor: default; }
