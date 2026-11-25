@@ -1,8 +1,9 @@
 import { sb, usuarioActual } from '../supabase.js';
 import { negocio, cargarNegocio, actualizarNegocioLocal } from '../negocio.js';
+import { estadoSync, pedirSincronizacion } from '../sincronizar.js';
 import { esc, datosFormulario, mensajeError, fecha, FORMAS_PAGO } from '../util.js';
 
-const VERSION_APP = '1.0 · etapa 4';
+const VERSION_APP = '1.0 · etapa 5';
 
 export async function vistaAjustes(app) {
   const user = await usuarioActual();
@@ -17,6 +18,14 @@ export async function vistaAjustes(app) {
     <h1>Ajustes</h1>
     ${faltaSql && esAdmin ? `<div class="tarjeta banner aviso-sql">⚠️ Falta ejecutar <b>sql/02_configuracion.sql</b> en Supabase
       (SQL Editor). Hasta entonces, los datos del negocio y la lista de usuarios pueden no funcionar.</div>` : ''}
+
+    <h2>Modo sin señal</h2>
+    <div class="tarjeta">
+      <p style="margin-top:0">La app guarda una copia de tus datos en este celular. Sin señal podés buscar, ver fichas y cargar trabajos, pagos y fotos: se suben solos cuando vuelve la señal.</p>
+      <div class="dato"><b>Copia local</b> <span id="sync-fecha">${estadoSync().actualizado ? new Date(estadoSync().actualizado).toLocaleString('es-AR') : 'todavía no se descargó'}</span></div>
+      <div class="dato"><b>Sin subir</b> ${estadoSync().pendientes} cambio(s)</div>
+      <div class="botones"><button id="btn-sync" class="btn secundario" type="button">🔄 Actualizar ahora</button></div>
+    </div>
 
     <h2>Mi perfil</h2>
     <form id="f-perfil" class="tarjeta">
@@ -79,6 +88,24 @@ export async function vistaAjustes(app) {
 
     <p class="sub version">Denis Center ${VERSION_APP}</p>
   `;
+
+  app.querySelector('#btn-sync').addEventListener('click', (e) => {
+    if (!navigator.onLine) { alert('Ahora no hay señal. Se actualiza solo cuando vuelva.'); return; }
+    const b = e.currentTarget;
+    b.textContent = '🔄 Actualizando…'; b.disabled = true;
+    pedirSincronizacion();
+    const antes = estadoSync().actualizado;
+    let vueltas = 0;
+    const t = setInterval(() => {
+      const ahora = estadoSync();
+      if ((ahora.actualizado !== antes && !ahora.sincronizando) || ++vueltas > 30) {
+        clearInterval(t);
+        b.textContent = '✔ Actualizado'; b.disabled = false;
+        const f = app.querySelector('#sync-fecha');
+        if (f && ahora.actualizado) f.textContent = new Date(ahora.actualizado).toLocaleString('es-AR');
+      }
+    }, 1000);
+  });
 
   // --- Mi nombre
   const fPerfil = app.querySelector('#f-perfil');

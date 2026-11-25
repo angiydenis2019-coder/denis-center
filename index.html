@@ -13,10 +13,13 @@
 <body>
   <header class="barra">
     <div class="marca">Denis Center <span>1.0</span></div>
-    <button id="btn-salir" class="btn-texto" hidden>Salir</button>
+    <div class="barra-der">
+      <button id="estado-sync" class="estado-sync" hidden></button>
+      <button id="btn-salir" class="btn-texto" hidden>Salir</button>
+    </div>
   </header>
 
-  <div id="aviso-offline" class="aviso" hidden>Sin conexión: los datos se actualizan cuando vuelva la señal.</div>
+  <div id="aviso-offline" class="aviso" hidden>📴 Sin señal: podés seguir usando la app. Lo que cargues se guarda en el celular y se sube solo cuando vuelva la señal.</div>
 
   <main id="app" aria-live="polite"></main>
 

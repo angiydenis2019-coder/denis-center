@@ -219,3 +219,9 @@ p.ayuda a, .dato a { color: var(--azul); }
 .recordatorio a.titulo { color: var(--texto); text-decoration: none; display: block; }
 .botones.chicos { margin: 10px 0 0; gap: 6px; align-items: center; }
 .botones.chicos .btn { min-height: 38px; padding: 0 12px; font-size: .9rem; }
+
+/* --- Modo sin señal --- */
+.barra-der { display: flex; align-items: center; gap: 10px; }
+.estado-sync { background: rgba(255,255,255,.15); color: #fff; border: 0; border-radius: 999px; padding: 5px 10px; font: inherit; font-size: .8rem; cursor: pointer; }
+.estado-sync.error { background: #fdecea; color: var(--rojo); }
+.foto-pendiente { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; font-size: .7rem; color: var(--gris); text-align: center; }

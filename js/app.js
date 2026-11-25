@@ -10,6 +10,7 @@ import { vistaAgenda } from './vistas/agenda.js';
 import { vistaPrecios } from './vistas/precios.js';
 import { vistaResumen } from './vistas/resumen.js';
 import { cargarNegocio } from './negocio.js';
+import { iniciarSincronizacion, prepararSalida, pedirSincronizacion } from './sincronizar.js';
 import { esc } from './util.js';
 
 const app = document.getElementById('app');
@@ -48,6 +49,7 @@ async function navegar() {
     return vistaLogin(app);
   }
   nav.hidden = false; btnSalir.hidden = false;
+  arrancarSync();
   if (!negocioCargado) { negocioCargado = true; cargarNegocio().catch(() => {}); }
 
   const [nombre, id, extra] = location.hash.replace(/^#\//, '').split('/');
@@ -68,8 +70,22 @@ async function navegar() {
 }
 
 btnSalir.addEventListener('click', async () => {
+  if (!(await prepararSalida())) return;
   await sb.auth.signOut();
 });
+
+// Modo sin señal: al terminar de subir cambios, refresca la pantalla (salvo que estés escribiendo)
+let syncIniciada = false;
+function arrancarSync() {
+  if (syncIniciada) { pedirSincronizacion(); return; }
+  syncIniciada = true;
+  iniciarSincronizacion({
+    alActualizar: () => {
+      if (/-(nuevo|editar)/.test(location.hash) || document.activeElement?.matches('input, textarea, select')) return;
+      navegar();
+    },
+  });
+}
 
 window.addEventListener('hashchange', navegar);
 

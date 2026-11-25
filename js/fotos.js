@@ -47,9 +47,12 @@ async function listar({ trabajoId, equipoId }) {
   const { data, error } = await q;
   if (error) throw error;
   if (!data.length) return [];
-  const { data: urls, error: e2 } = await sb.storage.from(BUCKET).createSignedUrls(data.map((f) => f.ruta), 3600);
-  if (e2) throw e2;
-  return data.map((f, i) => ({ ...f, url: urls[i]?.signedUrl }));
+  let urls = [];
+  try {
+    const { data: u, error: e2 } = await sb.storage.from(BUCKET).createSignedUrls(data.map((f) => f.ruta), 3600);
+    if (!e2) urls = u;
+  } catch { /* sin señal */ }
+  return data.map((f, i) => ({ ...f, url: urls[i]?.signedUrl || null }));
 }
 
 // ---------------------------------------------------------------------
@@ -84,11 +87,12 @@ export async function montarFotos(contenedor, { trabajoId = null, equipoId = nul
     galeria.innerHTML = fotos.length
       ? fotos.map((f, i) => `
           <button class="miniatura" data-i="${i}" type="button">
-            <img src="${esc(f.url)}" alt="${esc(ETIQUETAS_FOTO[f.etiqueta] || '')}" loading="lazy">
+            ${f.url ? `<img src="${esc(f.url)}" alt="${esc(ETIQUETAS_FOTO[f.etiqueta] || '')}" loading="lazy">`
+              : '<div class="foto-pendiente">📷<br>Se ve con señal</div>'}
             <span>${esc(ETIQUETAS_FOTO[f.etiqueta] || f.etiqueta)}</span>
           </button>`).join('')
       : '<p class="vacio">Sin fotos todavía.</p>';
-    galeria.querySelectorAll('.miniatura').forEach((b) =>
+    galeria.querySelectorAll('.miniatura').forEach((b) => fotos[b.dataset.i].url &&
       b.addEventListener('click', () => abrirVisor(fotos, Number(b.dataset.i), pintar)));
   };
 
