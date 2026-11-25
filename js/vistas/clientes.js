@@ -1,5 +1,5 @@
 import { sb } from '../supabase.js';
-import { NEGOCIO } from '../config.js';
+import { negocio } from '../negocio.js';
 import { esc, pesos, nombreCompleto, linkWhatsApp, datosFormulario, mensajeError, descEquipo } from '../util.js';
 import { tarjetaTrabajo } from './equipos.js';
 
@@ -54,7 +54,8 @@ export async function vistaClienteFicha(app, id) {
   const c = cli.data;
   if (!c || c.eliminado) { app.innerHTML = '<p class="vacio">Cliente no encontrado.</p>'; return; }
 
-  const saludo = `Hola ${c.nombre}, te escribe ${NEGOCIO.tecnico} (${NEGOCIO.nombre}).`;
+  const n = negocio();
+  const saludo = `Hola ${c.nombre}, te escribe ${n.tecnico} (${n.nombre}).`;
   const wa = linkWhatsApp(c.telefono, saludo);
   const deuda = trabajos.data.reduce((s, t) => s + (t.estado === 'realizado' && t.saldo > 0 ? Number(t.saldo) : 0), 0);
 

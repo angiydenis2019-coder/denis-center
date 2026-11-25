@@ -5,12 +5,15 @@ import { vistaInicio } from './vistas/inicio.js';
 import { vistaClientes, vistaClienteFicha, vistaClienteFormulario } from './vistas/clientes.js';
 import { vistaEquipoFicha, vistaEquipoFormulario } from './vistas/equipos.js';
 import { vistaTrabajoDetalle, vistaTrabajoFormulario } from './vistas/trabajos.js';
+import { vistaAjustes } from './vistas/ajustes.js';
+import { cargarNegocio } from './negocio.js';
 import { esc } from './util.js';
 
 const app = document.getElementById('app');
 const nav = document.getElementById('nav');
 const btnSalir = document.getElementById('btn-salir');
 let sesion = null;
+let negocioCargado = false;
 
 // Rutas: #/nombre/param1/param2 (ver tabla abajo)
 const rutas = {
@@ -24,6 +27,7 @@ const rutas = {
   'equipo-editar':  (id) => vistaEquipoFormulario(app, { id }),
   'trabajo':        (id) => vistaTrabajoDetalle(app, id),
   'trabajo-nuevo':  (clienteId, equipoId) => vistaTrabajoFormulario(app, { clienteId, equipoId }),
+  'ajustes':        () => vistaAjustes(app),
   'trabajo-editar': (id, extra) => vistaTrabajoFormulario(app, { id, completar: extra === 'completar' }),
 };
 
@@ -38,6 +42,7 @@ async function navegar() {
     return vistaLogin(app);
   }
   nav.hidden = false; btnSalir.hidden = false;
+  if (!negocioCargado) { negocioCargado = true; cargarNegocio().catch(() => {}); }
 
   const [nombre, id, extra] = location.hash.replace(/^#\//, '').split('/');
   const ruta = rutas[nombre] ? nombre : 'inicio';
@@ -95,6 +100,7 @@ if (configurado) {
     const cambio = !!nueva !== !!sesion;
     sesion = nueva;
     if (cambio) {
+      negocioCargado = false;
       if (sesion && !location.hash) location.hash = '#/inicio';
       navegar();
     }

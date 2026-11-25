@@ -1,6 +1,6 @@
 import { sb } from '../supabase.js';
 import { montarFotos } from '../fotos.js';
-import { NEGOCIO } from '../config.js';
+import { negocio } from '../negocio.js';
 import {
   esc, pesos, fecha, fechaHora, nombreCompleto, datosFormulario, descEquipo, linkWhatsApp,
   etiquetaCobro, etiquetaGarantia, mensajeError, aInputFecha, deInputFecha, FORMAS_PAGO,
@@ -28,7 +28,7 @@ export async function vistaTrabajoDetalle(app, id) {
   const wa = t.estado === 'realizado'
     ? linkWhatsApp(t.cliente_telefono, textoComprobante(t, repuestos))
     : t.estado === 'agendado' && t.fecha_turno
-      ? linkWhatsApp(t.cliente_telefono, `Hola ${t.cliente_nombre}, te confirmo la visita para el ${fechaHora(t.fecha_turno)}. ${NEGOCIO.tecnico} (${NEGOCIO.nombre}).`)
+      ? linkWhatsApp(t.cliente_telefono, `Hola ${t.cliente_nombre}, te confirmo la visita para el ${fechaHora(t.fecha_turno)}. ${negocio().tecnico} (${negocio().nombre}).`)
       : null;
 
   app.innerHTML = `
@@ -128,8 +128,9 @@ export async function vistaTrabajoDetalle(app, id) {
 
 // Texto del comprobante que se manda por WhatsApp
 function textoComprobante(t, repuestos) {
+  const n = negocio();
   const l = [
-    `*${NEGOCIO.nombre}* — Comprobante de trabajo`,
+    `*${n.nombre}* — Comprobante de trabajo`,
     `Cliente: ${t.cliente_nombre} ${t.cliente_apellido}`.trim(),
     `Fecha: ${fecha(t.fecha_realizado)}`,
   ];
@@ -142,7 +143,9 @@ function textoComprobante(t, repuestos) {
   l.push(`Mano de obra: ${pesos(t.mano_obra)}`, `*Total: ${pesos(t.total)}*`);
   if (Number(t.pagado) > 0) l.push(`Pagado: ${pesos(t.pagado)}`);
   if (Number(t.saldo) > 0) l.push(`*Saldo pendiente: ${pesos(t.saldo)}*`);
-  l.push(`Garantía: ${NEGOCIO.garantiaDias} días, hasta el ${fecha(t.garantia_hasta)}.`, '', `Gracias por su confianza. ${NEGOCIO.tecnico}`);
+  l.push(`Garantía: ${n.garantiaDias} días, hasta el ${fecha(t.garantia_hasta)}.`, '');
+  if (n.pie_comprobante) l.push(n.pie_comprobante);
+  l.push([n.tecnico, n.telefono && `Tel. ${n.telefono}`, n.direccion].filter(Boolean).join(' · '));
   return l.join('\n');
 }
 

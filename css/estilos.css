@@ -147,3 +147,14 @@ p.ayuda a, .dato a { color: var(--azul); }
 .visor-flecha { position: absolute; top: 50%; transform: translateY(-50%); background: rgba(255,255,255,.15); color: #fff; border: 0;
   font-size: 2rem; width: 44px; height: 64px; border-radius: 10px; cursor: pointer; }
 .visor-flecha.izq { left: 8px; } .visor-flecha.der { right: 8px; }
+
+/* --- Etapa 4: ajustes --- */
+.aviso-sql { background: #fff3cd; border-color: #f3d98b; color: #7a5b00; }
+.usuario { align-items: flex-start; }
+.usuario select { width: auto; padding: 6px 8px; margin-top: 6px; font-size: .9rem; }
+.interruptor { display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: .78rem; color: var(--gris); cursor: pointer; }
+.interruptor input { width: 22px; height: 22px; }
+.ayuda-det { margin-top: 12px; font-size: .92rem; }
+.ayuda-det summary { cursor: pointer; color: var(--azul); font-weight: 600; }
+.ayuda-det ol { padding-left: 20px; }
+.version { text-align: center; margin-top: 28px; }

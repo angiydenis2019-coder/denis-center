@@ -21,9 +21,15 @@ cobros y garantías (90 días). Funciona en celular y en la compu.
 - Se comprimen en el celular (~1600 px, JPEG) antes de subir
 - Visor a pantalla completa (deslizar para pasar, quitar)
 
-## Próximas etapas
-4. Modo sin conexión con sincronización
-5. Gestión de ayudantes
+## Etapa 4 — Ajustes
+> Requiere ejecutar `sql/02_configuracion.sql` en Supabase (SQL Editor).
+- Mi perfil: cambiar el nombre propio
+- Datos del negocio para mensajes y comprobantes
+- Usuarios: activar/desactivar ayudantes, cambiar rol (siempre queda un admin)
+- Copia de seguridad en Excel
+
+## Próxima etapa
+5. Modo sin conexión con sincronización
 
 ---
 
