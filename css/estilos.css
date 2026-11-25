@@ -371,3 +371,26 @@ a.tarjeta.agenda-item { display: flex; }
 .acciones-cli .btn:first-child { grid-column: 1 / -1; }
 .ancho-seg { display: flex; width: 100%; margin-bottom: 8px; }
 .ancho-seg button { flex: 1; padding: 9px 4px; font-size: .88rem; }
+
+/* ---------- Dictado por voz ---------- */
+.con-dictado { position: relative; display: block; width: 100%; min-width: 0; }
+.con-dictado > input, .con-dictado > textarea { padding-right: 46px; }
+.btn-microfono { position: absolute; right: 5px; top: 50%; transform: translateY(-50%); width: 38px; height: 38px;
+  border: 0; border-radius: 10px; background: transparent; color: var(--gris); cursor: pointer;
+  display: flex; align-items: center; justify-content: center; }
+.con-dictado.es-area .btn-microfono { top: 6px; transform: none; }
+.btn-microfono:hover { color: var(--azul); background: var(--azul-claro); }
+.btn-microfono.escuchando { color: #fff; background: #d93025; animation: latido 1.1s ease-in-out infinite; }
+@keyframes latido { 0%, 100% { box-shadow: 0 0 0 0 rgba(217,48,37,.45); } 50% { box-shadow: 0 0 0 8px rgba(217,48,37,0); } }
+.sin-dictado .btn-microfono { display: none; }
+.sin-dictado .con-dictado > input, .sin-dictado .con-dictado > textarea { padding-right: 12px; }
+.fila-rep .con-dictado > input { padding-right: 40px; }
+.toast { position: fixed; left: 16px; right: 16px; bottom: calc(96px + env(safe-area-inset-bottom)); z-index: 50; max-width: 520px; margin: 0 auto;
+  background: #12233d; color: #fff; padding: 12px 14px; border-radius: 12px; font-size: .92rem; box-shadow: 0 6px 20px rgba(0,0,0,.25); }
+[data-tema="oscura"] .toast { background: #e6edf6; color: #0c1420; }
+/* Repuesto en dos renglones: descripción arriba; cantidad y precio abajo */
+.fila-rep { grid-template-columns: 80px minmax(0, 1fr) 36px; row-gap: 6px; padding-bottom: 10px; margin-bottom: 10px; border-bottom: 1px dashed var(--borde); }
+.fila-rep > .con-dictado:first-child, .fila-rep > .r-desc { grid-column: 1 / 3; grid-row: 1; }
+.fila-rep > .r-cant { grid-column: 1; grid-row: 2; }
+.fila-rep > .r-precio { grid-column: 2; grid-row: 2; }
+.fila-rep > .btn-quitar { grid-column: 3; grid-row: 1; }

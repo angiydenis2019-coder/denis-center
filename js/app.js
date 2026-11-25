@@ -14,6 +14,7 @@ import { cargarNegocio } from './negocio.js';
 import { iniciarSincronizacion, prepararSalida, pedirSincronizacion } from './sincronizar.js';
 import { esc } from './util.js';
 import { siguienteTema, temaActual, aplicarTema } from './tema.js';
+import { iniciarDictado } from './dictado.js';
 
 const app = document.getElementById('app');
 const nav = document.getElementById('nav');
@@ -81,6 +82,7 @@ async function navegar() {
 }
 
 aplicarTema(temaActual());
+iniciarDictado(app);
 btnTema.addEventListener('click', () => {
   const t = siguienteTema();
   btnTema.title = 'Estilo: ' + t.nombre;

@@ -283,9 +283,9 @@ export async function vistaPresupuestoFormulario(app, { id = null, clienteId = n
     const d = document.createElement('div');
     d.className = 'fila-rep';
     d.innerHTML = `
-      <input class="r-desc" placeholder="Repuesto" list="dl-pres" autocomplete="off" aria-label="Repuesto" value="${esc(r.descripcion ?? '')}">
+      <input class="r-desc" placeholder="Repuesto (ej: capacitor 35uF)" list="dl-pres" autocomplete="off" aria-label="Repuesto" value="${esc(r.descripcion ?? '')}">
       <input class="r-cant" type="number" min="0.01" step="any" value="${Number(r.cantidad) || 1}" aria-label="Cantidad">
-      <input class="r-precio" type="number" min="0" step="any" placeholder="$" aria-label="Precio unitario" value="${r.precio_unitario != null ? Number(r.precio_unitario) : ''}">
+      <input class="r-precio" type="number" min="0" step="any" placeholder="Precio c/u $" aria-label="Precio unitario" value="${r.precio_unitario != null ? Number(r.precio_unitario) : ''}">
       <button type="button" class="btn-quitar" aria-label="Quitar">${ic('cerrar', 18)}</button>`;
     d.querySelector('.r-desc').addEventListener('input', (e) => {
       const precio = precioDe(precios, e.target.value);

@@ -110,3 +110,8 @@ iconos/
 - "Aceptó" crea el trabajo (con sus repuestos) listo para ponerle fecha
 - Botones "Voy en camino" (WhatsApp con tiempo estimado) y "Cómo llegar" (Google Maps)
 - Agenda por mes
+
+## Versión 1.3 — Dictado por voz
+- Botón de micrófono en los campos de texto y números (nombres, direcciones, notas, repuestos, precios, buscadores)
+- Números dictados: "18 mil" → 18000; teléfonos dictados de a dígitos
+- Se puede ocultar en Ajustes → Dictado por voz. Necesita señal.

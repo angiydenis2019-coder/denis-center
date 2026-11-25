@@ -3,6 +3,7 @@ import { sb, usuarioActual } from '../supabase.js';
 import { negocio, cargarNegocio, actualizarNegocioLocal } from '../negocio.js';
 import { estadoSync, pedirSincronizacion } from '../sincronizar.js';
 import { TEMAS, temaActual, aplicarTema } from '../tema.js';
+import { dictadoDisponible, dictadoActivo, activarDictado } from '../dictado.js';
 import { esc, datosFormulario, mensajeError, fecha, FORMAS_PAGO } from '../util.js';
 
 const VERSION_APP = '1.1';
@@ -28,6 +29,16 @@ export async function vistaAjustes(app) {
           <span class="mini-pantalla mp-${t.id}" aria-hidden="true"><i></i><i></i><i></i></span><b>${t.nombre}</b></button>`).join('')}
       </div>
       <p class="sub" style="margin-bottom:0">Se guarda en este celular. También podés cambiarlo con el botón de la paleta, arriba.</p>
+    </div>
+
+    <h2>Dictado por voz</h2>
+    <div class="tarjeta">
+      ${dictadoDisponible ? `<label class="fila" style="margin:0; cursor:pointer">
+        <span>Mostrar el micrófono en los campos para dictar</span>
+        <input type="checkbox" id="chk-dictado" style="width:24px;height:24px" ${dictadoActivo() ? 'checked' : ''}>
+      </label>
+      <p class="sub" style="margin-bottom:0">Tocás el micrófono, hablás y se escribe solo. Necesita señal; sin señal usá el micrófono del teclado del celular.</p>`
+      : '<p style="margin:0">Este navegador no permite dictar desde la app. Podés usar el micrófono del teclado del celular.</p>'}
     </div>
 
     <h2>Modo sin señal</h2>
@@ -117,6 +128,8 @@ export async function vistaAjustes(app) {
     aplicarTema(b.dataset.temaOp);
     app.querySelectorAll('[data-tema-op]').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
   }));
+
+  app.querySelector('#chk-dictado')?.addEventListener('change', (e) => activarDictado(e.target.checked));
 
   app.querySelector('#btn-sync').addEventListener('click', (e) => {
     if (!navigator.onLine) { alert('Ahora no hay señal. Se actualiza solo cuando vuelva.'); return; }

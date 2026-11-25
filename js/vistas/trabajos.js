@@ -323,9 +323,9 @@ export async function vistaTrabajoFormulario(app, { id = null, clienteId = null,
     const fila = document.createElement('div');
     fila.className = 'fila-rep';
     fila.innerHTML = `
-      <input class="r-desc" placeholder="Repuesto" list="dl-rep-form" autocomplete="off" aria-label="Repuesto">
+      <input class="r-desc" placeholder="Repuesto (ej: capacitor 35uF)" list="dl-rep-form" autocomplete="off" aria-label="Repuesto">
       <input class="r-cant" type="number" min="0.01" step="any" value="1" aria-label="Cantidad">
-      <input class="r-precio" type="number" min="0" step="any" placeholder="$" aria-label="Precio unitario">
+      <input class="r-precio" type="number" min="0" step="any" placeholder="Precio c/u $" aria-label="Precio unitario">
       <button type="button" class="btn-quitar" title="Quitar" aria-label="Quitar">${ic('cerrar', 18)}</button>`;
     fila.querySelector('.r-desc').addEventListener('input', (e) => {
       const p = precioDe(precios, e.target.value);
