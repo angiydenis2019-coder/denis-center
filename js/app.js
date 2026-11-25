@@ -70,8 +70,21 @@ window.addEventListener('offline', actualizarConexion);
 actualizarConexion();
 
 // Service worker (permite instalar la app y abrirla sin señal)
+// Al abrir la app (o volver a ella) busca si hay una versión nueva y, si la hay, recarga sola.
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('sw.js').catch((e) => console.warn('SW no registrado', e));
+  const habiaVersion = !!navigator.serviceWorker.controller;
+  let recargando = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (habiaVersion && !recargando) { recargando = true; location.reload(); }
+  });
+  navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' })
+    .then((reg) => {
+      reg.update();
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') reg.update();
+      });
+    })
+    .catch((e) => console.warn('SW no registrado', e));
 }
 
 // Arranque

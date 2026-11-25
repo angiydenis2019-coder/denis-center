@@ -1,7 +1,7 @@
 // Service worker de Denis Center: guarda la app en el celular para que
 // abra aunque no haya señal. (Los DATOS offline llegan en la etapa de sincronización.)
 // Cada vez que cambies archivos de la app, subí el número de versión.
-const VERSION = 'denis-center-v4';
+const VERSION = 'denis-center-v5';
 const ARCHIVOS = [
   './', './index.html', './manifest.json', './css/estilos.css',
   './js/app.js', './js/config.js', './js/supabase.js', './js/util.js', './js/fotos.js',
@@ -29,8 +29,10 @@ self.addEventListener('fetch', (e) => {
   if (url.hostname.endsWith('supabase.co')) return;
 
   // Archivos de la app y librería: primero la red, si no hay señal, lo guardado
+  // cache: 'no-cache' -> siempre pregunta al servidor si hay versión nueva
+  // (si no cambió, el servidor responde "sin cambios" y no se descarga de nuevo)
   e.respondWith(
-    fetch(e.request)
+    fetch(e.request, { cache: 'no-cache' })
       .then((resp) => {
         if (resp.ok && (url.origin === location.origin || url.hostname === 'esm.sh')) {
           const copia = resp.clone();
