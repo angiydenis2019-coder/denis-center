@@ -1,0 +1,281 @@
+import { sb } from '../supabase.js';
+import { NEGOCIO } from '../config.js';
+import {
+  esc, pesos, fecha, fechaHora, nombreCompleto, datosFormulario, descEquipo, linkWhatsApp,
+  etiquetaCobro, etiquetaGarantia, mensajeError, aInputFecha, deInputFecha, FORMAS_PAGO,
+} from '../util.js';
+
+// ---------------------------------------------------------------------
+// DETALLE DEL TRABAJO: datos, repuestos, pagos, saldo, garantía, WhatsApp
+// ---------------------------------------------------------------------
+export async function vistaTrabajoDetalle(app, id) {
+  const [tr, rep, pag] = await Promise.all([
+    sb.from('trabajos_resumen').select('*').eq('id', id).maybeSingle(),
+    sb.from('repuestos').select('*').eq('trabajo_id', id).eq('eliminado', false).order('creado_en'),
+    sb.from('pagos').select('*').eq('trabajo_id', id).eq('eliminado', false).order('fecha'),
+  ]);
+  for (const r of [tr, rep, pag]) if (r.error) throw r.error;
+  const t = tr.data;
+  if (!t) { app.innerHTML = '<p class="vacio">Trabajo no encontrado.</p>'; return; }
+  const repuestos = rep.data, pagos = pag.data;
+  const cliente = { nombre: t.cliente_nombre, apellido: t.cliente_apellido };
+
+  const encabezado = t.estado === 'realizado'
+    ? `Trabajo del ${esc(fecha(t.fecha_realizado))}`
+    : t.estado === 'agendado' ? `Turno: ${t.fecha_turno ? esc(fechaHora(t.fecha_turno)) : 'sin fecha'}` : 'Turno cancelado';
+
+  const wa = t.estado === 'realizado'
+    ? linkWhatsApp(t.cliente_telefono, textoComprobante(t, repuestos))
+    : t.estado === 'agendado' && t.fecha_turno
+      ? linkWhatsApp(t.cliente_telefono, `Hola ${t.cliente_nombre}, te confirmo la visita para el ${fechaHora(t.fecha_turno)}. ${NEGOCIO.tecnico} (${NEGOCIO.nombre}).`)
+      : null;
+
+  app.innerHTML = `
+    <p class="miga"><a href="#/cliente/${esc(t.cliente_id)}">← ${esc(nombreCompleto(cliente))}</a></p>
+    <h1>${encabezado}</h1>
+    <div class="etiquetas">${t.estado === 'realizado' ? etiquetaCobro(t.estado_cobro) + ' ' + etiquetaGarantia(t) : `<span class="etiqueta ${t.estado === 'agendado' ? 'agendado' : 'vencida'}">${esc(t.estado)}</span>`}</div>
+
+    <div class="tarjeta">
+      ${t.equipo_id ? `<div class="dato"><b>Equipo</b> <a href="#/equipo/${esc(t.equipo_id)}">${esc(descEquipo(t))}</a></div>` : ''}
+      ${t.falla_reportada ? `<div class="dato"><b>Falla</b> ${esc(t.falla_reportada)}</div>` : ''}
+      ${t.diagnostico ? `<div class="dato"><b>Diagnóstico</b> ${esc(t.diagnostico)}</div>` : ''}
+      ${t.trabajo_realizado ? `<div class="dato"><b>Se hizo</b> ${esc(t.trabajo_realizado)}</div>` : ''}
+      ${t.notas ? `<div class="dato"><b>Notas</b> ${esc(t.notas)}</div>` : ''}
+    </div>
+
+    <div class="botones">
+      ${t.estado === 'agendado' ? `<a class="btn" href="#/trabajo-editar/${esc(t.id)}/completar">✅ Completar trabajo</a>` : ''}
+      ${wa ? `<a class="btn whatsapp" href="${esc(wa)}" target="_blank" rel="noopener">💬 ${t.estado === 'realizado' ? 'Enviar comprobante' : 'Confirmar turno'}</a>` : ''}
+      <a class="btn secundario" href="#/trabajo-editar/${esc(t.id)}">✏️ Editar</a>
+    </div>
+
+    ${t.estado === 'cancelado' ? '' : `
+    <h2>Repuestos</h2>
+    <div class="tarjeta">
+      ${repuestos.length ? repuestos.map((r) => `
+        <div class="fila linea">
+          <div>${esc(r.descripcion)} <span class="sub">× ${Number(r.cantidad)} · ${pesos(r.precio_unitario)} c/u</span></div>
+          <div class="fila"><b>${pesos(r.cantidad * r.precio_unitario)}</b>
+            <button class="btn-quitar" data-quitar-rep="${esc(r.id)}" title="Quitar">✕</button></div>
+        </div>`).join('') : '<p class="vacio">Sin repuestos.</p>'}
+      <form id="f-rep" class="mini">
+        <input name="descripcion" placeholder="Repuesto (ej: capacitor 35uF)" required>
+        <input name="cantidad" type="number" min="0.01" step="any" value="1" required aria-label="Cantidad">
+        <input name="precio_unitario" type="number" min="0" step="any" placeholder="Precio" required aria-label="Precio unitario">
+        <button class="btn" type="submit">Agregar</button>
+      </form>
+    </div>
+
+    <h2>Cobro</h2>
+    <div class="tarjeta">
+      <div class="fila linea"><span>Mano de obra</span><span>${pesos(t.mano_obra)}</span></div>
+      <div class="fila linea"><span>Repuestos</span><span>${pesos(t.total_repuestos)}</span></div>
+      <div class="fila linea total"><span>Total</span><span>${pesos(t.total)}</span></div>
+      ${pagos.map((p) => `
+        <div class="fila linea">
+          <span>Pago ${esc(fecha(p.fecha))} · ${esc(FORMAS_PAGO[p.forma_pago] || p.forma_pago)}</span>
+          <span class="fila">− ${pesos(p.monto)} <button class="btn-quitar" data-quitar-pago="${esc(p.id)}" title="Quitar">✕</button></span>
+        </div>`).join('')}
+      <div class="fila linea total ${t.saldo > 0 ? 'deuda' : 'ok'}"><span>Saldo pendiente</span><span>${pesos(t.saldo)}</span></div>
+      ${t.saldo > 0 ? `
+      <form id="f-pago" class="mini">
+        <input name="monto" type="number" min="0.01" step="any" value="${Number(t.saldo)}" required aria-label="Monto">
+        <select name="forma_pago" aria-label="Forma de pago">${Object.entries(FORMAS_PAGO).map(([k, v]) => `<option value="${k}">${v}</option>`).join('')}</select>
+        <button class="btn" type="submit">Registrar pago</button>
+      </form>` : ''}
+    </div>`}
+    <p id="d-error" class="error" hidden></p>
+  `;
+
+  const error = app.querySelector('#d-error');
+  const recargar = () => vistaTrabajoDetalle(app, id);
+  const fallo = (err) => { error.textContent = mensajeError(err); error.hidden = false; };
+
+  app.querySelector('#f-rep')?.addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    const d = datosFormulario(ev.target);
+    const { error: err } = await sb.from('repuestos').insert({
+      id: crypto.randomUUID(), trabajo_id: id, descripcion: d.descripcion,
+      cantidad: Number(d.cantidad), precio_unitario: Number(d.precio_unitario),
+    });
+    err ? fallo(err) : recargar();
+  });
+
+  app.querySelector('#f-pago')?.addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    const d = datosFormulario(ev.target);
+    const { error: err } = await sb.from('pagos').insert({
+      id: crypto.randomUUID(), trabajo_id: id, monto: Number(d.monto), forma_pago: d.forma_pago,
+    });
+    err ? fallo(err) : recargar();
+  });
+
+  app.querySelectorAll('[data-quitar-rep], [data-quitar-pago]').forEach((b) => b.addEventListener('click', async () => {
+    const esRep = !!b.dataset.quitarRep;
+    if (!confirm(esRep ? '¿Quitar este repuesto?' : '¿Quitar este pago?')) return;
+    const { error: err } = await sb.from(esRep ? 'repuestos' : 'pagos')
+      .update({ eliminado: true }).eq('id', esRep ? b.dataset.quitarRep : b.dataset.quitarPago);
+    err ? fallo(err) : recargar();
+  }));
+}
+
+// Texto del comprobante que se manda por WhatsApp
+function textoComprobante(t, repuestos) {
+  const l = [
+    `*${NEGOCIO.nombre}* — Comprobante de trabajo`,
+    `Cliente: ${t.cliente_nombre} ${t.cliente_apellido}`.trim(),
+    `Fecha: ${fecha(t.fecha_realizado)}`,
+  ];
+  if (t.equipo_id) l.push(`Equipo: ${descEquipo(t)}`);
+  if (t.trabajo_realizado) l.push(`Trabajo realizado: ${t.trabajo_realizado}`);
+  if (repuestos.length) {
+    l.push('Repuestos:');
+    repuestos.forEach((r) => l.push(`• ${r.descripcion} x${Number(r.cantidad)}: ${pesos(r.cantidad * r.precio_unitario)}`));
+  }
+  l.push(`Mano de obra: ${pesos(t.mano_obra)}`, `*Total: ${pesos(t.total)}*`);
+  if (Number(t.pagado) > 0) l.push(`Pagado: ${pesos(t.pagado)}`);
+  if (Number(t.saldo) > 0) l.push(`*Saldo pendiente: ${pesos(t.saldo)}*`);
+  l.push(`Garantía: ${NEGOCIO.garantiaDias} días, hasta el ${fecha(t.garantia_hasta)}.`, '', `Gracias por su confianza. ${NEGOCIO.tecnico}`);
+  return l.join('\n');
+}
+
+// ---------------------------------------------------------------------
+// FORMULARIO: nuevo trabajo/turno o editar (incluye "completar")
+//   #/trabajo-nuevo[/clienteId[/equipoId]]   #/trabajo-editar/id[/completar]
+// ---------------------------------------------------------------------
+export async function vistaTrabajoFormulario(app, { id = null, clienteId = null, equipoId = null, completar = false }) {
+  let t = { cliente_id: clienteId, equipo_id: equipoId, estado: 'agendado', fecha_turno: null, fecha_realizado: null,
+    falla_reportada: '', diagnostico: '', trabajo_realizado: '', mano_obra: 0, notas: '' };
+  if (id) {
+    const { data, error } = await sb.from('trabajos').select('*').eq('id', id).maybeSingle();
+    if (error) throw error;
+    if (!data) { app.innerHTML = '<p class="vacio">Trabajo no encontrado.</p>'; return; }
+    t = data;
+    if (completar) t.estado = 'realizado';
+  }
+
+  const { data: clientes, error: errC } = await sb.from('clientes').select('id, nombre, apellido')
+    .eq('eliminado', false).order('apellido').order('nombre');
+  if (errC) throw errC;
+  if (!clientes.length) {
+    app.innerHTML = `<div class="tarjeta"><p>Primero cargá un cliente.</p><a class="btn" href="#/cliente-nuevo">+ Nuevo cliente</a></div>`;
+    return;
+  }
+
+  const v = (c) => esc(t[c] ?? '');
+  const volver = id ? `#/trabajo/${esc(id)}` : t.cliente_id ? `#/cliente/${esc(t.cliente_id)}` : '#/inicio';
+
+  app.innerHTML = `
+    <h1>${completar ? 'Completar trabajo' : id ? 'Editar trabajo' : 'Nuevo trabajo / turno'}</h1>
+    <form id="f-trabajo" class="tarjeta">
+      <label for="cliente_id">Cliente *</label>
+      <select id="cliente_id" name="cliente_id" required ${id ? 'disabled' : ''}>
+        <option value="">— Elegí un cliente —</option>
+        ${clientes.map((c) => `<option value="${esc(c.id)}" ${c.id === t.cliente_id ? 'selected' : ''}>${esc(c.apellido ? c.apellido + ', ' + c.nombre : c.nombre)}</option>`).join('')}
+      </select>
+      ${id ? '' : '<p class="ayuda"><a href="#/cliente-nuevo">+ Cliente nuevo</a></p>'}
+
+      <label for="equipo_id">Equipo</label>
+      <select id="equipo_id" name="equipo_id"></select>
+      <p class="ayuda" id="link-equipo"></p>
+
+      <label>¿Qué querés registrar?</label>
+      <div class="opciones">
+        <label class="opcion"><input type="radio" name="estado" value="agendado" ${t.estado === 'agendado' ? 'checked' : ''}> Turno a futuro</label>
+        <label class="opcion"><input type="radio" name="estado" value="realizado" ${t.estado === 'realizado' ? 'checked' : ''}> Trabajo realizado</label>
+        ${id ? `<label class="opcion"><input type="radio" name="estado" value="cancelado" ${t.estado === 'cancelado' ? 'checked' : ''}> Cancelado</label>` : ''}
+      </div>
+
+      <div data-seccion="agendado">
+        <label for="fecha_turno">Fecha y hora del turno</label>
+        <input id="fecha_turno" name="fecha_turno" type="datetime-local" value="${t.fecha_turno ? aInputFecha(t.fecha_turno) : ''}">
+      </div>
+
+      <label for="falla_reportada">Falla que reporta el cliente</label>
+      <textarea id="falla_reportada" name="falla_reportada" placeholder="Ej: el aire no enfría">${v('falla_reportada')}</textarea>
+
+      <div data-seccion="realizado">
+        <label for="fecha_realizado">Fecha en que se hizo *</label>
+        <input id="fecha_realizado" name="fecha_realizado" type="datetime-local" value="${aInputFecha(t.fecha_realizado)}">
+        <label for="diagnostico">Diagnóstico</label>
+        <textarea id="diagnostico" name="diagnostico">${v('diagnostico')}</textarea>
+        <label for="trabajo_realizado">Qué se hizo</label>
+        <textarea id="trabajo_realizado" name="trabajo_realizado" placeholder="Ej: cambio de capacitor y carga de gas">${v('trabajo_realizado')}</textarea>
+        <label for="mano_obra">Mano de obra ($)</label>
+        <input id="mano_obra" name="mano_obra" type="number" min="0" step="any" value="${Number(t.mano_obra) || ''}">
+        <p class="ayuda">Los repuestos y los pagos se cargan después de guardar.</p>
+      </div>
+
+      <label for="notas">Notas</label>
+      <textarea id="notas" name="notas">${v('notas')}</textarea>
+
+      <div class="botones">
+        <button class="btn" type="submit">Guardar</button>
+        <a class="btn secundario" href="${volver}">Cancelar</a>
+      </div>
+      <p id="f-error" class="error" hidden></p>
+    </form>`;
+
+  const form = app.querySelector('#f-trabajo');
+  const error = app.querySelector('#f-error');
+  const selCliente = form.querySelector('#cliente_id');
+  const selEquipo = form.querySelector('#equipo_id');
+  const linkEquipo = form.querySelector('#link-equipo');
+
+  // Equipos del cliente elegido
+  async function cargarEquipos() {
+    const cid = selCliente.value;
+    selEquipo.innerHTML = '<option value="">— Sin equipo / trabajo general —</option>';
+    linkEquipo.innerHTML = '';
+    if (!cid) return;
+    const { data } = await sb.from('equipos').select('id, tipo, marca, modelo, ubicacion')
+      .eq('cliente_id', cid).eq('eliminado', false).order('creado_en');
+    (data || []).forEach((e) => {
+      const o = new Option([descEquipo(e), e.ubicacion].filter(Boolean).join(' · '), e.id, false, e.id === t.equipo_id);
+      selEquipo.add(o);
+    });
+    linkEquipo.innerHTML = `<a href="#/equipo-nuevo/${esc(cid)}">+ Agregar equipo a este cliente</a>`;
+  }
+  selCliente.addEventListener('change', () => { t.equipo_id = null; cargarEquipos(); });
+  await cargarEquipos();
+
+  // Mostrar u ocultar campos según el estado
+  const actualizarSecciones = () => {
+    const estado = form.querySelector('input[name=estado]:checked')?.value;
+    form.querySelectorAll('[data-seccion]').forEach((s) => { s.hidden = s.dataset.seccion !== estado; });
+    form.fecha_realizado.required = estado === 'realizado';
+  };
+  form.querySelectorAll('input[name=estado]').forEach((r) => r.addEventListener('change', actualizarSecciones));
+  actualizarSecciones();
+
+  form.addEventListener('submit', async (ev) => {
+    ev.preventDefault();
+    const d = datosFormulario(form);
+    const datos = {
+      equipo_id: d.equipo_id,
+      estado: d.estado,
+      fecha_turno: deInputFecha(d.fecha_turno),
+      falla_reportada: d.falla_reportada,
+      fecha_realizado: d.estado === 'realizado' ? deInputFecha(d.fecha_realizado) : null,
+      diagnostico: d.diagnostico,
+      trabajo_realizado: d.trabajo_realizado,
+      mano_obra: Number(d.mano_obra) || 0,
+      notas: d.notas,
+    };
+    const boton = form.querySelector('button');
+    boton.disabled = true; error.hidden = true;
+
+    let nuevoId = id;
+    let err;
+    if (id) {
+      ({ error: err } = await sb.from('trabajos').update(datos).eq('id', id));
+    } else {
+      nuevoId = crypto.randomUUID();
+      const { data: { user } } = await sb.auth.getUser();
+      ({ error: err } = await sb.from('trabajos').insert({ id: nuevoId, cliente_id: d.cliente_id, tecnico_id: user.id, ...datos }));
+    }
+    boton.disabled = false;
+    if (err) { error.textContent = mensajeError(err); error.hidden = false; return; }
+    location.hash = '#/trabajo/' + nuevoId;
+  });
+}
