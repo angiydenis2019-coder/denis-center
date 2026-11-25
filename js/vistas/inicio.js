@@ -1,4 +1,5 @@
 import { sb } from '../supabase.js';
+import { cargarIndice, filtrar, tarjetaCliente } from '../buscar.js';
 import { esc, pesos, fechaHora, fecha, etiquetaCobro } from '../util.js';
 
 export async function vistaInicio(app) {
@@ -28,6 +29,9 @@ export async function vistaInicio(app) {
 
   app.innerHTML = `
     <h1>Hola, ${esc(perfil.nombre)} 👋</h1>
+    <input class="buscador" id="buscar-inicio" type="search" placeholder="🔍 Buscar cliente: nombre, DNI, teléfono o equipo" autocomplete="off">
+    <div id="resultados" hidden></div>
+    <div id="tablero">
     <div class="resumen">
       <div class="tarjeta"><div class="sub">Turnos de hoy</div><div class="numero">${turnosHoy.length}</div></div>
       <div class="tarjeta"><div class="sub">Turnos pendientes</div><div class="numero">${turnos.data.length}</div></div>
@@ -56,5 +60,28 @@ export async function vistaInicio(app) {
         </div>
         <div class="sub">Trabajo del ${esc(fecha(d.fecha_realizado))} · total ${pesos(d.total)} ${etiquetaCobro(d.estado_cobro)}</div>
       </a>`).join('') : '<p class="vacio">Nadie te debe nada. 🎉</p>'}
+    </div>
   `;
+
+  // Buscador: mientras haya texto, muestra resultados en lugar del tablero
+  const input = app.querySelector('#buscar-inicio');
+  const resultados = app.querySelector('#resultados');
+  const tablero = app.querySelector('#tablero');
+  let indice = null;
+  input.addEventListener('input', async () => {
+    const texto = input.value;
+    const hay = texto.trim() !== '';
+    tablero.hidden = hay;
+    resultados.hidden = !hay;
+    if (!hay) return;
+    if (!indice) {
+      resultados.innerHTML = '<p class="vacio">Buscando…</p>';
+      try { indice = await cargarIndice(); } catch (err) { resultados.innerHTML = `<p class="error">${esc(err.message)}</p>`; return; }
+    }
+    if (input.value !== texto) return; // ya escribió otra cosa
+    const res = filtrar(indice, texto).slice(0, 30);
+    resultados.innerHTML = res.length
+      ? res.map(tarjetaCliente).join('')
+      : `<p class="vacio">No se encontró ningún cliente.</p><div class="botones"><a class="btn secundario" href="#/cliente-nuevo">+ Cargar cliente nuevo</a></div>`;
+  });
 }

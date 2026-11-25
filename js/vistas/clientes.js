@@ -2,37 +2,28 @@ import { sb } from '../supabase.js';
 import { negocio } from '../negocio.js';
 import { esc, pesos, nombreCompleto, linkWhatsApp, datosFormulario, mensajeError, descEquipo } from '../util.js';
 import { tarjetaTrabajo } from './equipos.js';
-
-// Normaliza para buscar sin importar mayúsculas ni tildes
-const normalizar = (s) => String(s ?? '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+import { cargarIndice, filtrar, tarjetaCliente } from '../buscar.js';
 
 // ---------------------------------------------------------------------
 // LISTA DE CLIENTES con buscador
 // ---------------------------------------------------------------------
 export async function vistaClientes(app) {
-  const { data, error } = await sb.from('clientes')
-    .select('id, nombre, apellido, dni, telefono, direccion')
-    .eq('eliminado', false).order('apellido').order('nombre');
-  if (error) throw error;
+  const indice = await cargarIndice();
 
   app.innerHTML = `
     <div class="fila"><h1>Clientes</h1><a class="btn" href="#/cliente-nuevo">+ Nuevo</a></div>
-    <input class="buscador" id="buscar" type="search" placeholder="Buscar por nombre, apellido, DNI o teléfono" autocomplete="off">
+    <input class="buscador" id="buscar" type="search" placeholder="🔍 Nombre, apellido, DNI, teléfono o equipo" autocomplete="off">
+    <p class="sub" id="cuenta"></p>
     <div id="lista"></div>`;
 
   const lista = app.querySelector('#lista');
+  const cuenta = app.querySelector('#cuenta');
   const pintar = (texto) => {
-    const q = normalizar(texto).trim();
-    const filtrados = q
-      ? data.filter((c) => normalizar([c.nombre, c.apellido, c.dni, c.telefono].join(' ')).includes(q))
-      : data;
-    lista.innerHTML = filtrados.length
-      ? filtrados.map((c) => `
-          <a class="tarjeta" href="#/cliente/${esc(c.id)}">
-            <div class="titulo">${esc(c.apellido)}${c.apellido ? ', ' : ''}${esc(c.nombre)}</div>
-            <div class="sub">${[c.dni && 'DNI ' + esc(c.dni), c.telefono && '📞 ' + esc(c.telefono), esc(c.direccion)].filter(Boolean).join(' · ')}</div>
-          </a>`).join('')
-      : `<p class="vacio">${data.length ? 'No se encontró ningún cliente.' : 'Todavía no cargaste clientes.'}</p>`;
+    const res = filtrar(indice, texto);
+    cuenta.textContent = texto.trim() ? `${res.length} resultado${res.length === 1 ? '' : 's'}` : `${indice.length} clientes`;
+    lista.innerHTML = res.length
+      ? res.map(tarjetaCliente).join('')
+      : `<p class="vacio">${indice.length ? 'No se encontró ningún cliente.' : 'Todavía no cargaste clientes.'}</p>`;
   };
   const buscar = app.querySelector('#buscar');
   buscar.addEventListener('input', () => pintar(buscar.value));

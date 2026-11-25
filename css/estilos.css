@@ -158,3 +158,7 @@ p.ayuda a, .dato a { color: var(--azul); }
 .ayuda-det summary { cursor: pointer; color: var(--azul); font-weight: 600; }
 .ayuda-det ol { padding-left: 20px; }
 .version { text-align: center; margin-top: 28px; }
+
+/* buscador */
+.pista { color: var(--azul); margin-top: 4px; }
+#buscar-inicio { margin-bottom: 14px; }
