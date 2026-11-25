@@ -15,8 +15,13 @@ cobros y garantías (90 días). Funciona en celular y en la compu.
 - Repuestos y pagos parciales con saldo pendiente
 - WhatsApp: confirmar turno y enviar comprobante del trabajo
 
+## Etapa 3
+- Fotos desde la cámara o la galería, en el trabajo y en el equipo
+- Etiquetas: equipo, placa/modelo, pieza cambiada, antes, después
+- Se comprimen en el celular (~1600 px, JPEG) antes de subir
+- Visor a pantalla completa (deslizar para pasar, quitar)
+
 ## Próximas etapas
-3. Fotos con la cámara (comprimidas)
 4. Modo sin conexión con sincronización
 5. Gestión de ayudantes
 

@@ -1,10 +1,10 @@
 // Service worker de Denis Center: guarda la app en el celular para que
 // abra aunque no haya señal. (Los DATOS offline llegan en la etapa de sincronización.)
 // Cada vez que cambies archivos de la app, subí el número de versión.
-const VERSION = 'denis-center-v3';
+const VERSION = 'denis-center-v4';
 const ARCHIVOS = [
   './', './index.html', './manifest.json', './css/estilos.css',
-  './js/app.js', './js/config.js', './js/supabase.js', './js/util.js',
+  './js/app.js', './js/config.js', './js/supabase.js', './js/util.js', './js/fotos.js',
   './js/vistas/login.js', './js/vistas/inicio.js', './js/vistas/clientes.js',
   './js/vistas/equipos.js', './js/vistas/trabajos.js',
   './iconos/icono-192.png', './iconos/icono-512.png', './iconos/icono-maskable-512.png', './iconos/logo.png',

@@ -1,4 +1,5 @@
 import { sb } from '../supabase.js';
+import { montarFotos } from '../fotos.js';
 import {
   esc, fecha, fechaHora, pesos, nombreCompleto, datosFormulario, descEquipo,
   etiquetaCobro, etiquetaGarantia, mensajeError, TIPOS_EQUIPO,
@@ -36,9 +37,14 @@ export async function vistaEquipoFicha(app, id) {
       <a class="btn" href="#/trabajo-nuevo/${esc(e.cliente_id)}/${esc(e.id)}">+ Trabajo / turno</a>
       <a class="btn secundario" href="#/equipo-editar/${esc(e.id)}">✏️ Editar</a>
     </div>
+    <h2>Fotos del equipo</h2>
+    <p class="sub">Incluye las fotos de todos los trabajos hechos en este equipo.</p>
+    <div id="fotos" class="tarjeta"></div>
+
     <h2>Historial de este equipo</h2>
     ${trabajos.length ? trabajos.map(tarjetaTrabajo).join('') : '<p class="vacio">Sin trabajos todavía.</p>'}
   `;
+  montarFotos(app.querySelector('#fotos'), { equipoId: e.id });
 }
 
 // Tarjeta de trabajo reutilizable (ficha cliente / ficha equipo)

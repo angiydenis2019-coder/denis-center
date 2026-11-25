@@ -1,4 +1,5 @@
 import { sb } from '../supabase.js';
+import { montarFotos } from '../fotos.js';
 import { NEGOCIO } from '../config.js';
 import {
   esc, pesos, fecha, fechaHora, nombreCompleto, datosFormulario, descEquipo, linkWhatsApp,
@@ -50,6 +51,9 @@ export async function vistaTrabajoDetalle(app, id) {
     </div>
 
     ${t.estado === 'cancelado' ? '' : `
+    <h2>Fotos</h2>
+    <div id="fotos" class="tarjeta"></div>
+
     <h2>Repuestos</h2>
     <div class="tarjeta">
       ${repuestos.length ? repuestos.map((r) => `
@@ -86,6 +90,9 @@ export async function vistaTrabajoDetalle(app, id) {
     </div>`}
     <p id="d-error" class="error" hidden></p>
   `;
+
+  const cajaFotos = app.querySelector('#fotos');
+  if (cajaFotos) montarFotos(cajaFotos, { trabajoId: t.id, equipoId: t.equipo_id });
 
   const error = app.querySelector('#d-error');
   const recargar = () => vistaTrabajoDetalle(app, id);
