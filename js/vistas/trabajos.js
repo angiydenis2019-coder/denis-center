@@ -1,7 +1,7 @@
 import { sb, usuarioActual } from '../supabase.js';
 import { montarFotos } from '../fotos.js';
 import { cargarPrecios, datalistRepuestos, precioDe } from './precios.js';
-import { negocio } from '../negocio.js';
+import { negocio, tieneAlias, mensajeAlias, activarCopiarAlias, datosTransferencia } from '../negocio.js';
 import {
   esc, pesos, fecha, fechaHora, nombreCompleto, datosFormulario, descEquipo, linkWhatsApp,
   etiquetaCobro, etiquetaGarantia, mensajeError, aInputFecha, deInputFecha, FORMAS_PAGO,
@@ -51,6 +51,10 @@ export async function vistaTrabajoDetalle(app, id) {
       ${wa ? `<a class="btn whatsapp" href="${esc(wa)}" target="_blank" rel="noopener">💬 ${t.estado === 'realizado' ? 'Enviar comprobante' : 'Confirmar turno'}</a>` : ''}
       <a class="btn secundario" href="#/trabajo-editar/${esc(t.id)}">✏️ Editar</a>
     </div>
+    ${tieneAlias() && t.estado === 'realizado' && Number(t.saldo) > 0 ? `<div class="botones">
+      ${t.cliente_telefono ? `<a class="btn alias" href="${esc(linkWhatsApp(t.cliente_telefono, mensajeAlias(t.cliente_nombre, Number(t.saldo))))}" target="_blank" rel="noopener">💳 Pasar alias (${pesos(t.saldo)})</a>` : ''}
+      <button class="btn secundario" type="button" data-copiar-alias>📋 Copiar alias</button>
+    </div>` : ''}
 
     ${t.estado === 'cancelado' ? '' : `
     <h2>Fotos</h2>
@@ -94,6 +98,7 @@ export async function vistaTrabajoDetalle(app, id) {
     <p id="d-error" class="error" hidden></p>
   `;
 
+  activarCopiarAlias(app.querySelector('[data-copiar-alias]'));
   const cajaFotos = app.querySelector('#fotos');
   if (cajaFotos) montarFotos(cajaFotos, { trabajoId: t.id, equipoId: t.equipo_id });
 
@@ -151,7 +156,10 @@ function textoComprobante(t, repuestos) {
   }
   l.push(`Mano de obra: ${pesos(t.mano_obra)}`, `*Total: ${pesos(t.total)}*`);
   if (Number(t.pagado) > 0) l.push(`Pagado: ${pesos(t.pagado)}`);
-  if (Number(t.saldo) > 0) l.push(`*Saldo pendiente: ${pesos(t.saldo)}*`);
+  if (Number(t.saldo) > 0) {
+    l.push(`*Saldo pendiente: ${pesos(t.saldo)}*`);
+    if (tieneAlias()) l.push('', 'Para transferir:', datosTransferencia(), '');
+  }
   l.push(`Garantía: ${n.garantiaDias} días, hasta el ${fecha(t.garantia_hasta)}.`, '');
   if (n.pie_comprobante) l.push(n.pie_comprobante);
   l.push([n.tecnico, n.telefono && `Tel. ${n.telefono}`, n.direccion].filter(Boolean).join(' · '));

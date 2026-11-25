@@ -3,7 +3,7 @@ import { negocio, cargarNegocio, actualizarNegocioLocal } from '../negocio.js';
 import { estadoSync, pedirSincronizacion } from '../sincronizar.js';
 import { esc, datosFormulario, mensajeError, fecha, FORMAS_PAGO } from '../util.js';
 
-const VERSION_APP = '1.0 · etapa 5';
+const VERSION_APP = '1.0 · etapa 5.1';
 
 export async function vistaAjustes(app) {
   const user = await usuarioActual();
@@ -51,6 +51,18 @@ export async function vistaAjustes(app) {
       <input id="ng-direccion" name="direccion" value="${esc(n.direccion)}">
       ${'meses_mantenimiento' in n ? `<label for="ng-meses">Recordar mantenimiento cada (meses) <span class="ayuda">— 0 para no recordar</span></label>
       <input id="ng-meses" name="meses_mantenimiento" type="number" min="0" max="60" value="${Number(n.meses_mantenimiento)}">` : ''}
+      ${'alias' in n ? `
+      <fieldset class="grupo-alias">
+        <legend>💳 Datos para transferencias</legend>
+        <label for="ng-alias">Alias</label>
+        <input id="ng-alias" name="alias" value="${esc(n.alias)}" placeholder="ej: denis.center.mp" autocapitalize="none">
+        <label for="ng-cbu">CBU / CVU <span class="ayuda">— opcional</span></label>
+        <input id="ng-cbu" name="cbu" inputmode="numeric" value="${esc(n.cbu)}">
+        <label for="ng-titular">Titular de la cuenta <span class="ayuda">— opcional</span></label>
+        <input id="ng-titular" name="titular" value="${esc(n.titular)}">
+        <label for="ng-banco">Banco o billetera <span class="ayuda">— opcional (ej: Mercado Pago)</span></label>
+        <input id="ng-banco" name="banco" value="${esc(n.banco)}">
+      </fieldset>` : `<div class="tarjeta banner aviso-sql">Para guardar tu alias, ejecutá <b>sql/04_alias.sql</b> en Supabase.</div>`}
             <label for="ng-pie">Texto final del comprobante</label>
       <textarea id="ng-pie" name="pie_comprobante">${esc(n.pie_comprobante)}</textarea>
       <div class="botones"><button class="btn" type="submit">Guardar datos</button></div>

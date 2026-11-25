@@ -16,3 +16,41 @@ export async function cargarNegocio() {
 export function actualizarNegocioLocal(nuevos) {
   datos = { ...datos, ...nuevos };
 }
+
+// ---------------------------------------------------------------------
+// Alias / datos para transferir
+// ---------------------------------------------------------------------
+export const tieneAlias = () => !!(datos.alias || datos.cbu);
+
+export function datosTransferencia() {
+  return [
+    datos.alias && `Alias: *${datos.alias}*`,
+    datos.cbu && `CBU/CVU: ${datos.cbu}`,
+    datos.titular && `Titular: ${datos.titular}`,
+    datos.banco && `Banco/billetera: ${datos.banco}`,
+  ].filter(Boolean).join('\n');
+}
+
+// Mensaje para mandar el alias (con monto si se indica)
+export function mensajeAlias(nombreCliente, monto = 0) {
+  const montoTxt = monto > 0
+    ? `\nMonto a transferir: *${new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(monto)}*`
+    : '';
+  return `Hola ${nombreCliente || ''}, te paso mis datos para transferir:\n\n${datosTransferencia()}${montoTxt}\n\nCuando hagas la transferencia, mandame el comprobante por acá. ¡Gracias! ${datos.tecnico} (${datos.nombre})`
+    .replace('Hola ,', 'Hola,');
+}
+
+// Botón "Copiar alias": copia al portapapeles y avisa en el mismo botón
+export function activarCopiarAlias(boton) {
+  boton?.addEventListener('click', async () => {
+    const texto = datos.alias || datos.cbu;
+    try {
+      await navigator.clipboard.writeText(texto);
+      const antes = boton.textContent;
+      boton.textContent = '✔ Copiado';
+      setTimeout(() => { boton.textContent = antes; }, 1500);
+    } catch {
+      prompt('Copiá tu alias:', texto);
+    }
+  });
+}

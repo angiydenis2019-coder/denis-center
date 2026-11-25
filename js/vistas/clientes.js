@@ -1,5 +1,5 @@
 import { sb } from '../supabase.js';
-import { negocio } from '../negocio.js';
+import { negocio, tieneAlias, mensajeAlias, activarCopiarAlias } from '../negocio.js';
 import { esc, pesos, nombreCompleto, linkWhatsApp, datosFormulario, mensajeError, descEquipo } from '../util.js';
 import { tarjetaTrabajo } from './equipos.js';
 import { cargarIndice, filtrar, tarjetaCliente } from '../buscar.js';
@@ -64,6 +64,10 @@ export async function vistaClienteFicha(app, id) {
       ${c.telefono ? `<a class="btn secundario" href="tel:${esc(c.telefono.replace(/[^\d+]/g, ''))}">📞 Llamar</a>` : ''}
       <a class="btn secundario" href="#/cliente-editar/${esc(c.id)}">✏️ Editar</a>
     </div>
+    ${tieneAlias() ? `<div class="botones">
+      ${c.telefono ? `<a class="btn alias" href="${esc(linkWhatsApp(c.telefono, mensajeAlias(c.nombre, deuda)))}" target="_blank" rel="noopener">💳 Pasar alias${deuda > 0 ? ' (' + pesos(deuda) + ')' : ''}</a>` : ''}
+      <button class="btn secundario" type="button" data-copiar-alias>📋 Copiar alias</button>
+    </div>` : ''}
     <div class="botones">
       <a class="btn" href="#/trabajo-nuevo/${esc(c.id)}">+ Trabajo / turno</a>
       <a class="btn secundario" href="#/equipo-nuevo/${esc(c.id)}">+ Equipo</a>
@@ -79,6 +83,7 @@ export async function vistaClienteFicha(app, id) {
     <h2>Historial de trabajos</h2>
     ${trabajos.data.length ? trabajos.data.map(tarjetaTrabajo).join('') : '<p class="vacio">Sin trabajos todavía.</p>'}
   `;
+  activarCopiarAlias(app.querySelector('[data-copiar-alias]'));
 }
 
 // ---------------------------------------------------------------------

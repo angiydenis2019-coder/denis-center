@@ -37,6 +37,11 @@ cobros y garantías (90 días). Funciona en celular y en la compu.
 - Recordatorios de mantenimiento
 - Modo sin señal
 
+## Alias para transferencias
+> Requiere ejecutar `sql/04_alias.sql` en Supabase.
+- Alias, CBU/CVU, titular y banco en Ajustes
+- Botones "Pasar alias" (WhatsApp con monto) y "Copiar alias"
+
 ---
 
 ## Puesta en marcha
