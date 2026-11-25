@@ -40,7 +40,9 @@ export async function vistaAjustes(app) {
       <input id="ng-telefono" name="telefono" type="tel" value="${esc(n.telefono)}">
       <label for="ng-direccion">Dirección / localidad</label>
       <input id="ng-direccion" name="direccion" value="${esc(n.direccion)}">
-      <label for="ng-pie">Texto final del comprobante</label>
+      ${'meses_mantenimiento' in n ? `<label for="ng-meses">Recordar mantenimiento cada (meses) <span class="ayuda">— 0 para no recordar</span></label>
+      <input id="ng-meses" name="meses_mantenimiento" type="number" min="0" max="60" value="${Number(n.meses_mantenimiento)}">` : ''}
+            <label for="ng-pie">Texto final del comprobante</label>
       <textarea id="ng-pie" name="pie_comprobante">${esc(n.pie_comprobante)}</textarea>
       <div class="botones"><button class="btn" type="submit">Guardar datos</button></div>
       <p class="msg sub" hidden></p>
@@ -98,6 +100,7 @@ export async function vistaAjustes(app) {
     ev.preventDefault();
     const d = datosFormulario(fNeg);
     d.pie_comprobante = d.pie_comprobante ?? '';
+    if ('meses_mantenimiento' in d) d.meses_mantenimiento = Number(d.meses_mantenimiento) || 0;
     const { error: err } = await sb.from('negocio').update(d).eq('id', 1);
     if (!err) actualizarNegocioLocal(d);
     mostrar(fNeg.querySelector('.msg'), err ? mensajeError(err) : '✔ Datos guardados', !!err);
