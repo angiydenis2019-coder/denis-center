@@ -1,3 +1,4 @@
+import { ic } from '../iconos.js';
 import { sb, usuarioActual } from '../supabase.js';
 import { montarFotos } from '../fotos.js';
 import { cargarPrecios, datalistRepuestos, precioDe } from './precios.js';
@@ -47,13 +48,13 @@ export async function vistaTrabajoDetalle(app, id) {
     </div>
 
     <div class="botones">
-      ${t.estado === 'agendado' ? `<a class="btn" href="#/trabajo-editar/${esc(t.id)}/completar">✅ Completar trabajo</a>` : ''}
-      ${wa ? `<a class="btn whatsapp" href="${esc(wa)}" target="_blank" rel="noopener">💬 ${t.estado === 'realizado' ? 'Enviar comprobante' : 'Confirmar turno'}</a>` : ''}
-      <a class="btn secundario" href="#/trabajo-editar/${esc(t.id)}">✏️ Editar</a>
+      ${t.estado === 'agendado' ? `<a class="btn" href="#/trabajo-editar/${esc(t.id)}/completar">${ic('check', 18)} Completar trabajo</a>` : ''}
+      ${wa ? `<a class="btn whatsapp" href="${esc(wa)}" target="_blank" rel="noopener">${ic('chat', 18)} ${t.estado === 'realizado' ? 'Enviar comprobante' : 'Confirmar turno'}</a>` : ''}
+      <a class="btn secundario" href="#/trabajo-editar/${esc(t.id)}">${ic('editar', 18)} Editar</a>
     </div>
     ${tieneAlias() && t.estado === 'realizado' && Number(t.saldo) > 0 ? `<div class="botones">
-      ${t.cliente_telefono ? `<a class="btn alias" href="${esc(linkWhatsApp(t.cliente_telefono, mensajeAlias(t.cliente_nombre, Number(t.saldo))))}" target="_blank" rel="noopener">💳 Pasar alias (${pesos(t.saldo)})</a>` : ''}
-      <button class="btn secundario" type="button" data-copiar-alias>📋 Copiar alias</button>
+      ${t.cliente_telefono ? `<a class="btn alias" href="${esc(linkWhatsApp(t.cliente_telefono, mensajeAlias(t.cliente_nombre, Number(t.saldo))))}" target="_blank" rel="noopener">${ic('tarjeta', 18)} Pasar alias (${pesos(t.saldo)})</a>` : ''}
+      <button class="btn secundario" type="button" data-copiar-alias>${ic('copiar', 18)} Copiar alias</button>
     </div>` : ''}
 
     ${t.estado === 'cancelado' ? '' : `
@@ -66,7 +67,7 @@ export async function vistaTrabajoDetalle(app, id) {
         <div class="fila linea">
           <div>${esc(r.descripcion)} <span class="sub">× ${Number(r.cantidad)} · ${pesos(r.precio_unitario)} c/u</span></div>
           <div class="fila"><b>${pesos(r.cantidad * r.precio_unitario)}</b>
-            <button class="btn-quitar" data-quitar-rep="${esc(r.id)}" title="Quitar">✕</button></div>
+            <button class="btn-quitar" data-quitar-rep="${esc(r.id)}" title="Quitar" aria-label="Quitar">${ic('cerrar', 18)}</button></div>
         </div>`).join('') : '<p class="vacio">Sin repuestos.</p>'}
       <form id="f-rep" class="mini">
         <input name="descripcion" placeholder="Repuesto (ej: capacitor 35uF)" required list="dl-rep" autocomplete="off">
@@ -85,7 +86,7 @@ export async function vistaTrabajoDetalle(app, id) {
       ${pagos.map((p) => `
         <div class="fila linea">
           <span>Pago ${esc(fecha(p.fecha))} · ${esc(FORMAS_PAGO[p.forma_pago] || p.forma_pago)}</span>
-          <span class="fila">− ${pesos(p.monto)} <button class="btn-quitar" data-quitar-pago="${esc(p.id)}" title="Quitar">✕</button></span>
+          <span class="fila">− ${pesos(p.monto)} <button class="btn-quitar" data-quitar-pago="${esc(p.id)}" title="Quitar" aria-label="Quitar">${ic('cerrar', 18)}</button></span>
         </div>`).join('')}
       <div class="fila linea total ${t.saldo > 0 ? 'deuda' : 'ok'}"><span>Saldo pendiente</span><span>${pesos(t.saldo)}</span></div>
       ${t.saldo > 0 ? `
@@ -320,7 +321,7 @@ export async function vistaTrabajoFormulario(app, { id = null, clienteId = null,
       <input class="r-desc" placeholder="Repuesto" list="dl-rep-form" autocomplete="off" aria-label="Repuesto">
       <input class="r-cant" type="number" min="0.01" step="any" value="1" aria-label="Cantidad">
       <input class="r-precio" type="number" min="0" step="any" placeholder="$" aria-label="Precio unitario">
-      <button type="button" class="btn-quitar" title="Quitar">✕</button>`;
+      <button type="button" class="btn-quitar" title="Quitar" aria-label="Quitar">${ic('cerrar', 18)}</button>`;
     fila.querySelector('.r-desc').addEventListener('input', (e) => {
       const p = precioDe(precios, e.target.value);
       if (p !== undefined) fila.querySelector('.r-precio').value = Number(p);

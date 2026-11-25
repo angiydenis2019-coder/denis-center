@@ -1,3 +1,4 @@
+import { ic } from '../iconos.js';
 import { sb } from '../supabase.js';
 import { montarFotos } from '../fotos.js';
 import {
@@ -21,7 +22,7 @@ export async function vistaEquipoFicha(app, id) {
   const garantia = !ultimo
     ? '<p class="vacio">Sin trabajos realizados todavía.</p>'
     : ultimo.en_garantia
-      ? `<div class="tarjeta banner ok">🛡️ <b>En garantía</b> hasta el ${esc(fecha(ultimo.garantia_hasta))}<div class="sub">Por: ${esc(ultimo.trabajo_realizado || 'trabajo del ' + fecha(ultimo.fecha_realizado))}</div></div>`
+      ? `<div class="tarjeta banner ok">${ic('escudo', 18)} <b>En garantía</b> hasta el ${esc(fecha(ultimo.garantia_hasta))}<div class="sub">Por: ${esc(ultimo.trabajo_realizado || 'trabajo del ' + fecha(ultimo.fecha_realizado))}</div></div>`
       : `<div class="tarjeta banner vencida">Garantía vencida el ${esc(fecha(ultimo.garantia_hasta))}</div>`;
 
   app.innerHTML = `
@@ -35,7 +36,7 @@ export async function vistaEquipoFicha(app, id) {
     ${garantia}
     <div class="botones">
       <a class="btn" href="#/trabajo-nuevo/${esc(e.cliente_id)}/${esc(e.id)}">+ Trabajo / turno</a>
-      <a class="btn secundario" href="#/equipo-editar/${esc(e.id)}">✏️ Editar</a>
+      <a class="btn secundario" href="#/equipo-editar/${esc(e.id)}">${ic('editar', 18)} Editar</a>
     </div>
     <h2>Fotos del equipo</h2>
     <p class="sub">Incluye las fotos de todos los trabajos hechos en este equipo.</p>

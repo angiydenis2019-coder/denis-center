@@ -98,3 +98,8 @@ js/vistas/          Una pantalla por archivo
 sql/01_esquema.sql  Base de datos
 iconos/
 ```
+
+## Versión 1.1 — Apariencia
+- Tres estilos: Clara, Azul profundo y Oscura (Ajustes → Apariencia o botón de paleta arriba)
+- Se guarda por celular
+- Íconos de línea en lugar de emojis, letra del logo, botón "+" flotante

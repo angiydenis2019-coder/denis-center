@@ -1,3 +1,4 @@
+import { ic } from '../iconos.js';
 import { sb } from '../supabase.js';
 import { negocio, tieneAlias, mensajeAlias, activarCopiarAlias } from '../negocio.js';
 import { esc, pesos, nombreCompleto, linkWhatsApp, datosFormulario, mensajeError, descEquipo } from '../util.js';
@@ -12,7 +13,7 @@ export async function vistaClientes(app) {
 
   app.innerHTML = `
     <div class="fila"><h1>Clientes</h1><a class="btn" href="#/cliente-nuevo">+ Nuevo</a></div>
-    <input class="buscador" id="buscar" type="search" placeholder="🔍 Nombre, apellido, DNI, teléfono o equipo" autocomplete="off">
+    <input class="buscador" id="buscar" type="search" placeholder="Nombre, apellido, DNI, teléfono o equipo" autocomplete="off">
     <p class="sub" id="cuenta"></p>
     <div id="lista"></div>`;
 
@@ -60,13 +61,13 @@ export async function vistaClienteFicha(app, id) {
       ${deuda > 0 ? `<div class="dato"><b>Saldo</b> <strong style="color:var(--rojo)">Debe ${pesos(deuda)}</strong></div>` : ''}
     </div>
     <div class="botones">
-      ${wa ? `<a class="btn whatsapp" href="${esc(wa)}" target="_blank" rel="noopener">💬 WhatsApp</a>` : ''}
-      ${c.telefono ? `<a class="btn secundario" href="tel:${esc(c.telefono.replace(/[^\d+]/g, ''))}">📞 Llamar</a>` : ''}
-      <a class="btn secundario" href="#/cliente-editar/${esc(c.id)}">✏️ Editar</a>
+      ${wa ? `<a class="btn whatsapp" href="${esc(wa)}" target="_blank" rel="noopener">${ic('chat', 18)} WhatsApp</a>` : ''}
+      ${c.telefono ? `<a class="btn secundario" href="tel:${esc(c.telefono.replace(/[^\d+]/g, ''))}">${ic('telefono', 18)} Llamar</a>` : ''}
+      <a class="btn secundario" href="#/cliente-editar/${esc(c.id)}">${ic('editar', 18)} Editar</a>
     </div>
     ${tieneAlias() ? `<div class="botones">
-      ${c.telefono ? `<a class="btn alias" href="${esc(linkWhatsApp(c.telefono, mensajeAlias(c.nombre, deuda)))}" target="_blank" rel="noopener">💳 Pasar alias${deuda > 0 ? ' (' + pesos(deuda) + ')' : ''}</a>` : ''}
-      <button class="btn secundario" type="button" data-copiar-alias>📋 Copiar alias</button>
+      ${c.telefono ? `<a class="btn alias" href="${esc(linkWhatsApp(c.telefono, mensajeAlias(c.nombre, deuda)))}" target="_blank" rel="noopener">${ic('tarjeta', 18)} Pasar alias${deuda > 0 ? ' (' + pesos(deuda) + ')' : ''}</a>` : ''}
+      <button class="btn secundario" type="button" data-copiar-alias>${ic('copiar', 18)} Copiar alias</button>
     </div>` : ''}
     <div class="botones">
       <a class="btn" href="#/trabajo-nuevo/${esc(c.id)}">+ Trabajo / turno</a>

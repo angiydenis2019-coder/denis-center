@@ -4,11 +4,11 @@
 // Cada vez que cambies archivos de la app, subí el número de versión.
 importScripts('./js/sw-datos.js');
 
-const VERSION = 'denis-center-v9';
+const VERSION = 'denis-center-v10';
 const ARCHIVOS = [
   './', './index.html', './manifest.json', './css/estilos.css',
   './js/app.js', './js/config.js', './js/supabase.js', './js/util.js', './js/fotos.js', './js/negocio.js',
-  './js/buscar.js', './js/recordatorios.js', './js/sincronizar.js', './js/sw-datos.js',
+  './js/buscar.js', './js/recordatorios.js', './js/sincronizar.js', './js/sw-datos.js', './js/iconos.js', './js/tema.js',
   './js/vistas/login.js', './js/vistas/inicio.js', './js/vistas/clientes.js',
   './js/vistas/equipos.js', './js/vistas/trabajos.js', './js/vistas/ajustes.js', './js/vistas/agenda.js',
   './js/vistas/precios.js', './js/vistas/resumen.js',
@@ -84,7 +84,7 @@ self.addEventListener('fetch', (e) => {
   e.respondWith(
     fetch(req, { cache: 'no-cache' })
       .then((resp) => {
-        if (resp.ok && (url.origin === location.origin || url.hostname === 'esm.sh')) {
+        if (resp.ok && (url.origin === location.origin || ['esm.sh', 'fonts.googleapis.com', 'fonts.gstatic.com'].includes(url.hostname))) {
           const copia = resp.clone();
           caches.open(VERSION).then((c) => c.put(req, copia));
         }

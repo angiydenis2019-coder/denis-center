@@ -1,9 +1,11 @@
+import { ic } from '../iconos.js';
 import { sb, usuarioActual } from '../supabase.js';
 import { negocio, cargarNegocio, actualizarNegocioLocal } from '../negocio.js';
 import { estadoSync, pedirSincronizacion } from '../sincronizar.js';
+import { TEMAS, temaActual, aplicarTema } from '../tema.js';
 import { esc, datosFormulario, mensajeError, fecha, FORMAS_PAGO } from '../util.js';
 
-const VERSION_APP = '1.0 · etapa 5.1';
+const VERSION_APP = '1.1';
 
 export async function vistaAjustes(app) {
   const user = await usuarioActual();
@@ -16,15 +18,24 @@ export async function vistaAjustes(app) {
 
   app.innerHTML = `
     <h1>Ajustes</h1>
-    ${faltaSql && esAdmin ? `<div class="tarjeta banner aviso-sql">⚠️ Falta ejecutar <b>sql/02_configuracion.sql</b> en Supabase
+    ${faltaSql && esAdmin ? `<div class="tarjeta banner aviso-sql">${ic('alerta', 18)} Falta ejecutar <b>sql/02_configuracion.sql</b> en Supabase
       (SQL Editor). Hasta entonces, los datos del negocio y la lista de usuarios pueden no funcionar.</div>` : ''}
+
+    <h2>Apariencia</h2>
+    <div class="tarjeta">
+      <div class="temas" role="group" aria-label="Estilo de la app">
+        ${TEMAS.map((t) => `<button type="button" class="tema-op" data-tema-op="${t.id}" aria-pressed="${t.id === temaActual()}">
+          <span class="mini-pantalla mp-${t.id}" aria-hidden="true"><i></i><i></i><i></i></span><b>${t.nombre}</b></button>`).join('')}
+      </div>
+      <p class="sub" style="margin-bottom:0">Se guarda en este celular. También podés cambiarlo con el botón de la paleta, arriba.</p>
+    </div>
 
     <h2>Modo sin señal</h2>
     <div class="tarjeta">
       <p style="margin-top:0">La app guarda una copia de tus datos en este celular. Sin señal podés buscar, ver fichas y cargar trabajos, pagos y fotos: se suben solos cuando vuelve la señal.</p>
       <div class="dato"><b>Copia local</b> <span id="sync-fecha">${estadoSync().actualizado ? new Date(estadoSync().actualizado).toLocaleString('es-AR') : 'todavía no se descargó'}</span></div>
       <div class="dato"><b>Sin subir</b> ${estadoSync().pendientes} cambio(s)</div>
-      <div class="botones"><button id="btn-sync" class="btn secundario" type="button">🔄 Actualizar ahora</button></div>
+      <div class="botones"><button id="btn-sync" class="btn secundario" type="button">${ic('actualizar', 18)} Actualizar ahora</button></div>
     </div>
 
     <h2>Mi perfil</h2>
@@ -53,7 +64,7 @@ export async function vistaAjustes(app) {
       <input id="ng-meses" name="meses_mantenimiento" type="number" min="0" max="60" value="${Number(n.meses_mantenimiento)}">` : ''}
       ${'alias' in n ? `
       <fieldset class="grupo-alias">
-        <legend>💳 Datos para transferencias</legend>
+        <legend>${ic('tarjeta', 18)} Datos para transferencias</legend>
         <label for="ng-alias">Alias</label>
         <input id="ng-alias" name="alias" value="${esc(n.alias)}" placeholder="ej: denis.center.mp" autocapitalize="none">
         <label for="ng-cbu">CBU / CVU <span class="ayuda">— opcional</span></label>
@@ -71,8 +82,8 @@ export async function vistaAjustes(app) {
 
     <h2>Herramientas</h2>
     <div class="tarjeta">
-      <a class="enlace-fila" href="#/precios">💲 Lista de precios <span>›</span></a>
-      <a class="enlace-fila" href="#/resumen">📊 Resumen de ganancias <span>›</span></a>
+      <a class="enlace-fila" href="#/precios"><span class="con-ic">${ic('precio')} Lista de precios</span> <span>›</span></a>
+      <a class="enlace-fila" href="#/resumen"><span class="con-ic">${ic('grafico')} Resumen de ganancias</span> <span>›</span></a>
     </div>
 
     <h2>Usuarios y ayudantes</h2>
@@ -94,12 +105,17 @@ export async function vistaAjustes(app) {
     <div class="tarjeta">
       <p style="margin-top:0">Descarga un archivo Excel con clientes, equipos, trabajos, repuestos y pagos. Guardalo en la compu o en Drive de vez en cuando.</p>
       <p class="sub">Las fotos no se incluyen (quedan guardadas en Supabase).</p>
-      <div class="botones"><button id="btn-respaldo" class="btn" type="button">⬇️ Descargar Excel</button></div>
+      <div class="botones"><button id="btn-respaldo" class="btn" type="button">${ic('descargar', 18)} Descargar Excel</button></div>
       <p id="respaldo-msg" class="sub" hidden></p>
     </div>` : ''}
 
     <p class="sub version">Denis Center ${VERSION_APP}</p>
   `;
+
+  app.querySelectorAll('[data-tema-op]').forEach((b) => b.addEventListener('click', () => {
+    aplicarTema(b.dataset.temaOp);
+    app.querySelectorAll('[data-tema-op]').forEach((x) => x.setAttribute('aria-pressed', String(x === b)));
+  }));
 
   app.querySelector('#btn-sync').addEventListener('click', (e) => {
     if (!navigator.onLine) { alert('Ahora no hay señal. Se actualiza solo cuando vuelva.'); return; }

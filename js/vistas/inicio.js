@@ -30,14 +30,17 @@ export async function vistaInicio(app) {
   const totalDeuda = deudas.data.reduce((s, d) => s + Number(d.saldo), 0);
 
   app.innerHTML = `
-    <h1>Hola, ${esc(perfil.nombre)} 👋</h1>
-    <input class="buscador" id="buscar-inicio" type="search" placeholder="🔍 Buscar cliente: nombre, DNI, teléfono o equipo" autocomplete="off">
+    <div class="hero">
+      <p class="fecha-hoy">${esc(new Date().toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' }).replace(/^\w/, (c) => c.toUpperCase()))}</p>
+      <h1>Hola, ${esc(perfil.nombre)}</h1>
+      <input class="buscador" id="buscar-inicio" type="search" placeholder="Buscar cliente, DNI, teléfono o equipo" autocomplete="off" aria-label="Buscar cliente">
+    </div>
     <div id="resultados" hidden></div>
     <div id="tablero">
     <div class="resumen">
       <div class="tarjeta"><div class="sub">Turnos de hoy</div><div class="numero">${turnosHoy.length}</div></div>
       <div class="tarjeta"><div class="sub">Turnos pendientes</div><div class="numero">${turnos.data.length}</div></div>
-      <a class="tarjeta" href="#/resumen"><div class="sub">Me deben · ver resumen ›</div><div class="numero deuda">${pesos(totalDeuda)}</div></a>
+      <a class="tarjeta" href="#/resumen"><div class="sub">Me deben ›</div><div class="numero deuda">${pesos(totalDeuda)}</div></a>
       <div class="tarjeta"><div class="sub">Clientes</div><div class="numero">${clientes.count ?? 0}</div></div>
     </div>
 
@@ -61,7 +64,7 @@ export async function vistaInicio(app) {
           <strong>${pesos(d.saldo)}</strong>
         </div>
         <div class="sub">Trabajo del ${esc(fecha(d.fecha_realizado))} · total ${pesos(d.total)} ${etiquetaCobro(d.estado_cobro)}</div>
-      </a>`).join('') : '<p class="vacio">Nadie te debe nada. 🎉</p>'}
+      </a>`).join('') : '<p class="vacio">Nadie te debe nada.</p>'}
 
     <div id="recordatorios" hidden></div>
     </div>

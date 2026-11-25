@@ -1,3 +1,4 @@
+import { ic } from './iconos.js';
 // Recordatorios de mantenimiento: equipos con su último trabajo hace más de N meses
 import { sb } from './supabase.js';
 import { negocio } from './negocio.js';
@@ -56,7 +57,7 @@ export async function montarRecordatorios(caja) {
     const mostrar = verTodos ? lista : lista.slice(0, 3);
     caja.hidden = false;
     caja.innerHTML = `
-      <h2>🔔 Mantenimientos para ofrecer <span class="sub">(${lista.length})</span></h2>
+      <h2>${ic('campana')} Mantenimientos para ofrecer <span class="sub">(${lista.length})</span></h2>
       ${mostrar.map((e) => {
         const c = e.clientes;
         const mensaje = `Hola ${c.nombre}, te escribe ${n.tecnico} (${n.nombre}). Hace ${mesesDesde(e.ultimo)} meses le hicimos un trabajo a tu ${[e.tipo?.toLowerCase(), e.marca, e.modelo].filter(Boolean).join(' ') || 'equipo'}. ¿Querés que coordinemos un mantenimiento para que siga funcionando bien?`;
@@ -66,10 +67,10 @@ export async function montarRecordatorios(caja) {
           <a class="titulo" href="#/equipo/${esc(e.id)}">${esc([c.nombre, c.apellido].filter(Boolean).join(' '))} · ${esc(descEquipo(e))}</a>
           <div class="sub">Último trabajo hace ${mesesDesde(e.ultimo)} meses (${esc(fecha(e.ultimo))})${e.ubicacion ? ' · ' + esc(e.ubicacion) : ''}</div>
           <div class="botones chicos">
-            ${wa ? `<a class="btn whatsapp" href="${esc(wa)}" target="_blank" rel="noopener">💬 Ofrecer</a>` : ''}
-            <a class="btn secundario" href="#/trabajo-nuevo/${esc(c.id)}/${esc(e.id)}">📅 Agendar</a>
-            <button class="btn secundario" data-posponer="3">⏰ 3 meses</button>
-            <button class="btn-quitar" data-posponer="nunca" title="No recordar más este equipo">✕</button>
+            ${wa ? `<a class="btn whatsapp" href="${esc(wa)}" target="_blank" rel="noopener">${ic('chat', 18)} Ofrecer</a>` : ''}
+            <a class="btn secundario" href="#/trabajo-nuevo/${esc(c.id)}/${esc(e.id)}">${ic('agenda', 18)} Agendar</a>
+            <button class="btn secundario" data-posponer="3">${ic('reloj', 18)} 3 meses</button>
+            <button class="btn-quitar" data-posponer="nunca" title="No recordar más este equipo" aria-label="No recordar más">${ic('cerrar', 18)}</button>
           </div>
         </div>`;
       }).join('')}

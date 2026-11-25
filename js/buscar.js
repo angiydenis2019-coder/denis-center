@@ -1,3 +1,4 @@
+import { ic } from './iconos.js';
 // Búsqueda de clientes por nombre, apellido, DNI, teléfono, dirección o equipo
 import { sb } from './supabase.js';
 import { esc, descEquipo } from './util.js';
@@ -49,7 +50,7 @@ export function tarjetaCliente({ c, equipo }) {
   return `
     <a class="tarjeta" href="#/cliente/${esc(c.id)}">
       <div class="titulo">${esc(c.apellido)}${c.apellido ? ', ' : ''}${esc(c.nombre)}</div>
-      <div class="sub">${[c.dni && 'DNI ' + esc(c.dni), c.telefono && '📞 ' + esc(c.telefono), esc(c.direccion)].filter(Boolean).join(' · ')}</div>
-      ${equipo ? `<div class="sub pista">🔧 ${esc([descEquipo(equipo), equipo.numero_serie && 'N° ' + equipo.numero_serie].filter(Boolean).join(' · '))}</div>` : ''}
+      <div class="sub">${[c.dni && 'DNI ' + esc(c.dni), c.telefono && esc(c.telefono), esc(c.direccion)].filter(Boolean).join(' · ')}</div>
+      ${equipo ? `<div class="sub pista">${ic('herramienta', 16)} ${esc([descEquipo(equipo), equipo.numero_serie && 'N° ' + equipo.numero_serie].filter(Boolean).join(' · '))}</div>` : ''}
     </a>`;
 }

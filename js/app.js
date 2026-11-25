@@ -12,10 +12,13 @@ import { vistaResumen } from './vistas/resumen.js';
 import { cargarNegocio } from './negocio.js';
 import { iniciarSincronizacion, prepararSalida, pedirSincronizacion } from './sincronizar.js';
 import { esc } from './util.js';
+import { siguienteTema, temaActual, aplicarTema } from './tema.js';
 
 const app = document.getElementById('app');
 const nav = document.getElementById('nav');
 const btnSalir = document.getElementById('btn-salir');
+const btnTema = document.getElementById('btn-tema');
+const fab = document.getElementById('fab');
 let sesion = null;
 let negocioCargado = false;
 
@@ -45,10 +48,11 @@ async function navegar() {
     return;
   }
   if (!sesion) {
-    nav.hidden = true; btnSalir.hidden = true;
+    nav.hidden = true; btnSalir.hidden = true; btnTema.hidden = true; fab.hidden = true;
+    document.body.classList.remove('con-fab');
     return vistaLogin(app);
   }
-  nav.hidden = false; btnSalir.hidden = false;
+  nav.hidden = false; btnSalir.hidden = false; btnTema.hidden = false;
   arrancarSync();
   if (!negocioCargado) { negocioCargado = true; cargarNegocio().catch(() => {}); }
 
@@ -59,6 +63,8 @@ async function navegar() {
     a.classList.toggle('activo', r === ruta || (r === 'clientes' && /^(cliente|equipo|trabajo)/.test(ruta)) || (r === 'ajustes' && /^(precios|resumen)/.test(ruta)));
   });
 
+  fab.hidden = !['inicio', 'agenda', 'clientes', 'cliente', 'equipo'].includes(ruta);
+  document.body.classList.toggle('con-fab', !fab.hidden);
   app.innerHTML = '<p class="vacio">Cargando…</p>';
   try {
     await rutas[ruta](id || null, extra || null);
@@ -68,6 +74,14 @@ async function navegar() {
   }
   window.scrollTo(0, 0);
 }
+
+aplicarTema(temaActual());
+btnTema.addEventListener('click', () => {
+  const t = siguienteTema();
+  btnTema.title = 'Estilo: ' + t.nombre;
+  // Si estás en Ajustes, refrescar la selección
+  document.querySelectorAll('[data-tema-op]').forEach((x) => x.setAttribute('aria-pressed', String(x.dataset.temaOp === t.id)));
+});
 
 btnSalir.addEventListener('click', async () => {
   if (!(await prepararSalida())) return;

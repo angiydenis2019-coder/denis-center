@@ -1,3 +1,4 @@
+import { ic } from '../iconos.js';
 import { sb } from '../supabase.js';
 import { esc, pesos, mensajeError } from '../util.js';
 import { normalizar } from '../buscar.js';
@@ -32,7 +33,7 @@ export async function vistaPrecios(app) {
   app.innerHTML = `
     <p class="miga"><a href="#/ajustes">← Ajustes</a></p>
     <h1>Lista de precios</h1>
-    ${errTabla ? '<div class="tarjeta banner aviso-sql">⚠️ Falta ejecutar <b>sql/03_herramientas.sql</b> en Supabase.</div>' : ''}
+    ${errTabla ? `<div class="tarjeta banner aviso-sql">${ic('alerta', 18)} Falta ejecutar <b>sql/03_herramientas.sql</b> en Supabase.</div>` : ''}
     <p class="sub">Guardá tus repuestos y trabajos más comunes. Al cargar un trabajo, los elegís de la lista y el precio se completa solo.</p>
 
     <form id="f-precio" class="tarjeta mini-precio">
@@ -46,7 +47,7 @@ export async function vistaPrecios(app) {
       <p class="msg sub" hidden></p>
     </form>
 
-    <input class="buscador" id="buscar-precio" type="search" placeholder="🔍 Buscar en la lista" autocomplete="off">
+    <input class="buscador" id="buscar-precio" type="search" placeholder="Buscar en la lista" autocomplete="off">
     <h2>Servicios</h2><div id="l-servicio"></div>
     <h2>Repuestos</h2><div id="l-repuesto"></div>
   `;
@@ -60,7 +61,7 @@ export async function vistaPrecios(app) {
           <span class="precio-desc">${esc(p.descripcion)}</span>
           <span class="fila">
             <input class="precio-valor" type="number" min="0" step="any" value="${Number(p.precio)}" aria-label="Precio">
-            <button class="btn-quitar" data-quitar title="Quitar">✕</button>
+            <button class="btn-quitar" data-quitar title="Quitar" aria-label="Quitar">${ic('cerrar', 18)}</button>
           </span>
         </div>`).join('')}</div>` : '<p class="vacio">Nada cargado.</p>';
     }

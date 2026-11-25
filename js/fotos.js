@@ -1,3 +1,4 @@
+import { ic } from './iconos.js';
 // Fotos: comprimir en el celular, subir a Supabase Storage y mostrar en galería
 import { sb } from './supabase.js';
 import { esc, mensajeError } from './util.js';
@@ -66,8 +67,8 @@ export async function montarFotos(contenedor, { trabajoId = null, equipoId = nul
       <select class="foto-etiqueta" aria-label="Tipo de foto">
         ${Object.entries(ETIQUETAS_FOTO).map(([k, v]) => `<option value="${k}">${v}</option>`).join('')}
       </select>
-      <label class="btn">📷 Cámara<input type="file" accept="image/*" capture="environment" hidden></label>
-      <label class="btn secundario">🖼️ Galería<input type="file" accept="image/*" multiple hidden></label>
+      <label class="btn">${ic('camara')} Cámara<input type="file" accept="image/*" capture="environment" hidden></label>
+      <label class="btn secundario">${ic('galeria')} Galería<input type="file" accept="image/*" multiple hidden></label>
     </div>
     <p class="foto-estado sub" hidden></p>
     <div class="galeria"><p class="vacio">Cargando fotos…</p></div>`;
@@ -88,7 +89,7 @@ export async function montarFotos(contenedor, { trabajoId = null, equipoId = nul
       ? fotos.map((f, i) => `
           <button class="miniatura" data-i="${i}" type="button">
             ${f.url ? `<img src="${esc(f.url)}" alt="${esc(ETIQUETAS_FOTO[f.etiqueta] || '')}" loading="lazy">`
-              : '<div class="foto-pendiente">📷<br>Se ve con señal</div>'}
+              : `<div class="foto-pendiente">${ic('camara', 22)}<br>Se ve con señal</div>`}
             <span>${esc(ETIQUETAS_FOTO[f.etiqueta] || f.etiqueta)}</span>
           </button>`).join('')
       : '<p class="vacio">Sin fotos todavía.</p>';
@@ -143,8 +144,8 @@ function abrirVisor(fotos, inicio, alCambiar) {
       <div class="visor-barra">
         <span>${esc(ETIQUETAS_FOTO[f.etiqueta] || f.etiqueta)} · ${i + 1}/${fotos.length}</span>
         <span>
-          <button type="button" data-accion="quitar">🗑️ Quitar</button>
-          <button type="button" data-accion="cerrar">✕</button>
+          <button type="button" data-accion="quitar">${ic('basura', 18)} Quitar</button>
+          <button type="button" data-accion="cerrar" aria-label="Cerrar">${ic('cerrar', 18)}</button>
         </span>
       </div>
       <img src="${esc(f.url)}" alt="">
