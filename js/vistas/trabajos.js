@@ -1,5 +1,6 @@
 import { sb, usuarioActual } from '../supabase.js';
 import { montarFotos } from '../fotos.js';
+import { cargarPrecios, datalistRepuestos, precioDe } from './precios.js';
 import { negocio } from '../negocio.js';
 import {
   esc, pesos, fecha, fechaHora, nombreCompleto, datosFormulario, descEquipo, linkWhatsApp,
@@ -19,6 +20,7 @@ export async function vistaTrabajoDetalle(app, id) {
   const t = tr.data;
   if (!t) { app.innerHTML = '<p class="vacio">Trabajo no encontrado.</p>'; return; }
   const repuestos = rep.data, pagos = pag.data;
+  const precios = await cargarPrecios();
   const cliente = { nombre: t.cliente_nombre, apellido: t.cliente_apellido };
 
   const encabezado = t.estado === 'realizado'
@@ -63,7 +65,8 @@ export async function vistaTrabajoDetalle(app, id) {
             <button class="btn-quitar" data-quitar-rep="${esc(r.id)}" title="Quitar">✕</button></div>
         </div>`).join('') : '<p class="vacio">Sin repuestos.</p>'}
       <form id="f-rep" class="mini">
-        <input name="descripcion" placeholder="Repuesto (ej: capacitor 35uF)" required>
+        <input name="descripcion" placeholder="Repuesto (ej: capacitor 35uF)" required list="dl-rep" autocomplete="off">
+        ${datalistRepuestos('dl-rep', precios)}
         <input name="cantidad" type="number" min="0.01" step="any" value="1" required aria-label="Cantidad">
         <input name="precio_unitario" type="number" min="0" step="any" placeholder="Precio" required aria-label="Precio unitario">
         <button class="btn" type="submit">Agregar</button>
@@ -98,7 +101,13 @@ export async function vistaTrabajoDetalle(app, id) {
   const recargar = () => vistaTrabajoDetalle(app, id);
   const fallo = (err) => { error.textContent = mensajeError(err); error.hidden = false; };
 
-  app.querySelector('#f-rep')?.addEventListener('submit', async (ev) => {
+  const fRep = app.querySelector('#f-rep');
+  fRep?.descripcion.addEventListener('input', () => {
+    const p = precioDe(precios, fRep.descripcion.value);
+    if (p !== undefined) fRep.precio_unitario.value = Number(p);
+  });
+
+  fRep?.addEventListener('submit', async (ev) => {
     ev.preventDefault();
     const d = datosFormulario(ev.target);
     const { error: err } = await sb.from('repuestos').insert({
@@ -175,6 +184,9 @@ export async function vistaTrabajoFormulario(app, { id = null, clienteId = null,
     return;
   }
 
+  const precios = await cargarPrecios();
+  const servicios = precios.filter((p) => p.tipo === 'servicio');
+  const conExtras = !id || completar; // al crear o completar: repuestos y cobro en el mismo paso
   const v = (c) => esc(t[c] ?? '');
   const volver = id ? `#/trabajo/${esc(id)}` : t.cliente_id ? `#/cliente/${esc(t.cliente_id)}` : '#/inicio';
 
@@ -212,11 +224,30 @@ export async function vistaTrabajoFormulario(app, { id = null, clienteId = null,
         <input id="fecha_realizado" name="fecha_realizado" type="datetime-local" value="${aInputFecha(t.fecha_realizado)}">
         <label for="diagnostico">Diagnóstico</label>
         <textarea id="diagnostico" name="diagnostico">${v('diagnostico')}</textarea>
+        ${servicios.length ? `<label for="servicio-lista">Agregar servicio de la lista</label>
+        <select id="servicio-lista"><option value="">— Elegir —</option>${servicios.map((p) =>
+          `<option value="${esc(p.id)}">${esc(p.descripcion)} · ${pesos(p.precio)}</option>`).join('')}</select>
+        <p class="ayuda">Completa "Qué se hizo" y suma el precio a la mano de obra.</p>` : ''}
         <label for="trabajo_realizado">Qué se hizo</label>
         <textarea id="trabajo_realizado" name="trabajo_realizado" placeholder="Ej: cambio de capacitor y carga de gas">${v('trabajo_realizado')}</textarea>
         <label for="mano_obra">Mano de obra ($)</label>
         <input id="mano_obra" name="mano_obra" type="number" min="0" step="any" value="${Number(t.mano_obra) || ''}">
-        <p class="ayuda">Los repuestos y los pagos se cargan después de guardar.</p>
+        ${conExtras ? `
+        <label>Repuestos usados</label>
+        ${datalistRepuestos('dl-rep-form', precios)}
+        <div id="filas-rep"></div>
+        <button type="button" class="btn-mas" id="mas-rep">+ Agregar repuesto</button>
+
+        <div class="tarjeta total-form">
+          <div class="fila"><span>Total del trabajo</span><b id="total-form">$ 0</b></div>
+          <label for="cobrado">Cobrado ahora ($) <span class="ayuda">— dejalo vacío si no te pagó</span></label>
+          <div class="fila">
+            <input id="cobrado" name="cobrado" type="number" min="0" step="any">
+            <button type="button" class="btn secundario" id="cobre-todo">Todo</button>
+          </div>
+          <label for="forma_pago">Forma de pago</label>
+          <select id="forma_pago" name="forma_pago">${Object.entries(FORMAS_PAGO).map(([k, v]) => `<option value="${k}">${v}</option>`).join('')}</select>
+        </div>` : '<p class="ayuda">Los repuestos y los pagos se modifican desde el detalle del trabajo.</p>'}
       </div>
 
       <label for="notas">Notas</label>
@@ -261,6 +292,52 @@ export async function vistaTrabajoFormulario(app, { id = null, clienteId = null,
   form.querySelectorAll('input[name=estado]').forEach((r) => r.addEventListener('change', actualizarSecciones));
   actualizarSecciones();
 
+  // Servicio de la lista -> completa "qué se hizo" y suma mano de obra
+  form.querySelector('#servicio-lista')?.addEventListener('change', (e) => {
+    const p = servicios.find((x) => x.id === e.target.value);
+    if (!p) return;
+    const ta = form.trabajo_realizado;
+    ta.value = ta.value.trim() ? ta.value.trim() + ', ' + p.descripcion : p.descripcion;
+    form.mano_obra.value = (Number(form.mano_obra.value) || 0) + Number(p.precio);
+    e.target.value = '';
+    calcularTotal();
+  });
+
+  // Repuestos en el mismo formulario
+  const filasRep = form.querySelector('#filas-rep');
+  function agregarFilaRep() {
+    const fila = document.createElement('div');
+    fila.className = 'fila-rep';
+    fila.innerHTML = `
+      <input class="r-desc" placeholder="Repuesto" list="dl-rep-form" autocomplete="off" aria-label="Repuesto">
+      <input class="r-cant" type="number" min="0.01" step="any" value="1" aria-label="Cantidad">
+      <input class="r-precio" type="number" min="0" step="any" placeholder="$" aria-label="Precio unitario">
+      <button type="button" class="btn-quitar" title="Quitar">✕</button>`;
+    fila.querySelector('.r-desc').addEventListener('input', (e) => {
+      const p = precioDe(precios, e.target.value);
+      if (p !== undefined) fila.querySelector('.r-precio').value = Number(p);
+      calcularTotal();
+    });
+    fila.querySelectorAll('input').forEach((i) => i.addEventListener('input', calcularTotal));
+    fila.querySelector('.btn-quitar').addEventListener('click', () => { fila.remove(); calcularTotal(); });
+    filasRep.appendChild(fila);
+    fila.querySelector('.r-desc').focus();
+  }
+  const leerRepuestos = () => [...(filasRep?.querySelectorAll('.fila-rep') || [])]
+    .map((f) => ({ descripcion: f.querySelector('.r-desc').value.trim(),
+      cantidad: Number(f.querySelector('.r-cant').value) || 1, precio_unitario: Number(f.querySelector('.r-precio').value) || 0 }))
+    .filter((r) => r.descripcion);
+  function calcularTotal() {
+    const caja = form.querySelector('#total-form');
+    if (!caja) return 0;
+    const total = (Number(form.mano_obra.value) || 0) + leerRepuestos().reduce((a, r) => a + r.cantidad * r.precio_unitario, 0);
+    caja.textContent = pesos(total);
+    return total;
+  }
+  form.querySelector('#mas-rep')?.addEventListener('click', agregarFilaRep);
+  form.querySelector('#cobre-todo')?.addEventListener('click', () => { form.cobrado.value = calcularTotal() || ''; });
+  form.mano_obra.addEventListener('input', calcularTotal);
+
   form.addEventListener('submit', async (ev) => {
     ev.preventDefault();
     const d = datosFormulario(form);
@@ -286,6 +363,16 @@ export async function vistaTrabajoFormulario(app, { id = null, clienteId = null,
       nuevoId = crypto.randomUUID();
       const user = await usuarioActual();
       ({ error: err } = await sb.from('trabajos').insert({ id: nuevoId, cliente_id: d.cliente_id, tecnico_id: user.id, ...datos }));
+    }
+    if (!err && conExtras && d.estado === 'realizado') {
+      const reps = leerRepuestos().map((r) => ({ id: crypto.randomUUID(), trabajo_id: nuevoId, ...r }));
+      if (reps.length) ({ error: err } = await sb.from('repuestos').insert(reps));
+      const cobrado = Number(d.cobrado) || 0;
+      if (!err && cobrado > 0) {
+        ({ error: err } = await sb.from('pagos').insert({
+          id: crypto.randomUUID(), trabajo_id: nuevoId, monto: cobrado, forma_pago: d.forma_pago || 'efectivo',
+        }));
+      }
     }
     boton.disabled = false;
     if (err) { error.textContent = mensajeError(err); error.hidden = false; return; }

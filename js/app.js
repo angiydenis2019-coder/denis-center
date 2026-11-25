@@ -7,6 +7,7 @@ import { vistaEquipoFicha, vistaEquipoFormulario } from './vistas/equipos.js';
 import { vistaTrabajoDetalle, vistaTrabajoFormulario } from './vistas/trabajos.js';
 import { vistaAjustes } from './vistas/ajustes.js';
 import { vistaAgenda } from './vistas/agenda.js';
+import { vistaPrecios } from './vistas/precios.js';
 import { cargarNegocio } from './negocio.js';
 import { esc } from './util.js';
 
@@ -30,6 +31,7 @@ const rutas = {
   'trabajo-nuevo':  (clienteId, equipoId) => vistaTrabajoFormulario(app, { clienteId, equipoId }),
   'ajustes':        () => vistaAjustes(app),
   'agenda':         () => vistaAgenda(app),
+  'precios':        () => vistaPrecios(app),
   'trabajo-editar': (id, extra) => vistaTrabajoFormulario(app, { id, completar: extra === 'completar' }),
 };
 
@@ -50,7 +52,7 @@ async function navegar() {
   const ruta = rutas[nombre] ? nombre : 'inicio';
   nav.querySelectorAll('a').forEach((a) => {
     const r = a.dataset.ruta;
-    a.classList.toggle('activo', r === ruta || (r === 'clientes' && /^(cliente|equipo|trabajo)/.test(ruta)));
+    a.classList.toggle('activo', r === ruta || (r === 'clientes' && /^(cliente|equipo|trabajo)/.test(ruta)) || (r === 'ajustes' && /^(precios|resumen)/.test(ruta)));
   });
 
   app.innerHTML = '<p class="vacio">Cargando…</p>';
@@ -86,6 +88,7 @@ if ('serviceWorker' in navigator) {
   });
   navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' })
     .then((reg) => {
+      if (!reg) return;
       reg.update();
       document.addEventListener('visibilitychange', () => {
         if (document.visibilityState === 'visible') reg.update();

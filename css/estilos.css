@@ -181,3 +181,18 @@ p.ayuda a, .dato a { color: var(--azul); }
 .btn-mas { width: 100%; background: none; border: 1px dashed var(--borde); border-radius: 10px; color: var(--azul); padding: 10px; font: inherit; cursor: pointer; }
 .btn-mini { background: var(--azul-claro); color: var(--azul); border: 0; border-radius: 8px; padding: 6px 10px; font: inherit; font-size: .85rem; font-weight: 600; cursor: pointer; }
 .vacio.chico { padding: 0 0 4px; font-size: .9rem; }
+
+/* --- Lista de precios --- */
+.mini-precio { display: grid; gap: 8px; }
+@media (min-width: 560px) { .mini-precio { grid-template-columns: 1fr 2fr 1fr auto; } .mini-precio .msg { grid-column: 1 / -1; } }
+.precio-desc { flex: 1; }
+.precio-valor { width: 110px; padding: 8px; text-align: right; }
+.precio-valor.guardado { outline: 2px solid var(--verde); }
+.fila-rep { display: grid; grid-template-columns: 1fr 62px 96px 32px; gap: 6px; margin-bottom: 6px; align-items: center; }
+.fila-rep input { padding: 10px 8px; }
+.total-form { margin-top: 14px; background: var(--azul-claro); }
+.total-form .fila input { flex: 1; }
+.total-form b { font-size: 1.2rem; color: var(--azul); }
+.enlace-fila { display: flex; justify-content: space-between; padding: 12px 0; color: var(--texto); text-decoration: none; font-weight: 600; border-bottom: 1px dashed var(--borde); }
+.enlace-fila:last-child { border-bottom: 0; }
+.enlace-fila span { color: var(--gris); }

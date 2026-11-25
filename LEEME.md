@@ -28,8 +28,14 @@ cobros y garantías (90 días). Funciona en celular y en la compu.
 - Usuarios: activar/desactivar ayudantes, cambiar rol (siempre queda un admin)
 - Copia de seguridad en Excel
 
-## Próxima etapa
-5. Modo sin conexión con sincronización
+## Etapa 5 — Herramientas
+> Requiere ejecutar `sql/03_herramientas.sql` en Supabase (SQL Editor).
+- Agenda por día y por semana
+- Lista de precios (repuestos y servicios) con autocompletado
+- Repuestos y cobro en el mismo formulario al crear o completar un trabajo
+- Resumen de ganancias por mes
+- Recordatorios de mantenimiento
+- Modo sin señal
 
 ---
 

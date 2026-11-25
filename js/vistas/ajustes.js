@@ -46,6 +46,12 @@ export async function vistaAjustes(app) {
       <p class="msg sub" hidden></p>
     </form>
 
+    <h2>Herramientas</h2>
+    <div class="tarjeta">
+      <a class="enlace-fila" href="#/precios">💲 Lista de precios <span>›</span></a>
+      <a class="enlace-fila" href="#/resumen">📊 Resumen de ganancias <span>›</span></a>
+    </div>
+
     <h2>Usuarios y ayudantes</h2>
     <div class="tarjeta">
       <div id="usuarios"><p class="vacio">Cargando…</p></div>

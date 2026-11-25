@@ -6,7 +6,7 @@ const ARCHIVOS = [
   './', './index.html', './manifest.json', './css/estilos.css',
   './js/app.js', './js/config.js', './js/supabase.js', './js/util.js', './js/fotos.js', './js/negocio.js', './js/buscar.js',
   './js/vistas/login.js', './js/vistas/inicio.js', './js/vistas/clientes.js',
-  './js/vistas/equipos.js', './js/vistas/trabajos.js', './js/vistas/ajustes.js', './js/vistas/agenda.js',
+  './js/vistas/equipos.js', './js/vistas/trabajos.js', './js/vistas/ajustes.js', './js/vistas/agenda.js', './js/vistas/precios.js',
   './iconos/icono-192.png', './iconos/icono-512.png', './iconos/icono-maskable-512.png', './iconos/logo.png',
 ];
 
