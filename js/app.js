@@ -9,6 +9,7 @@ import { vistaAjustes } from './vistas/ajustes.js';
 import { vistaAgenda } from './vistas/agenda.js';
 import { vistaPrecios } from './vistas/precios.js';
 import { vistaResumen } from './vistas/resumen.js';
+import { vistaPresupuestos, vistaPresupuestoDetalle, vistaPresupuestoFormulario } from './vistas/presupuestos.js';
 import { cargarNegocio } from './negocio.js';
 import { iniciarSincronizacion, prepararSalida, pedirSincronizacion } from './sincronizar.js';
 import { esc } from './util.js';
@@ -38,6 +39,10 @@ const rutas = {
   'agenda':         () => vistaAgenda(app),
   'precios':        () => vistaPrecios(app),
   'resumen':        () => vistaResumen(app),
+  'presupuestos':   () => vistaPresupuestos(app),
+  'presupuesto':    (id) => vistaPresupuestoDetalle(app, id),
+  'presupuesto-nuevo': (clienteId, equipoId) => vistaPresupuestoFormulario(app, { clienteId, equipoId }),
+  'presupuesto-editar': (id) => vistaPresupuestoFormulario(app, { id }),
   'trabajo-editar': (id, extra) => vistaTrabajoFormulario(app, { id, completar: extra === 'completar' }),
 };
 
@@ -60,7 +65,7 @@ async function navegar() {
   const ruta = rutas[nombre] ? nombre : 'inicio';
   nav.querySelectorAll('a').forEach((a) => {
     const r = a.dataset.ruta;
-    a.classList.toggle('activo', r === ruta || (r === 'clientes' && /^(cliente|equipo|trabajo)/.test(ruta)) || (r === 'ajustes' && /^(precios|resumen)/.test(ruta)));
+    a.classList.toggle('activo', r === ruta || (r === 'clientes' && /^(cliente|equipo|trabajo|presupuesto-|presupuesto$)/.test(ruta)) || (r === 'ajustes' && /^(precios|resumen|presupuestos)/.test(ruta)));
   });
 
   fab.hidden = !['inicio', 'agenda', 'clientes', 'cliente', 'equipo'].includes(ruta);

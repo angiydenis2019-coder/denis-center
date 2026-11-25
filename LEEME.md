@@ -103,3 +103,10 @@ iconos/
 - Tres estilos: Clara, Azul profundo y Oscura (Ajustes → Apariencia o botón de paleta arriba)
 - Se guarda por celular
 - Íconos de línea en lugar de emojis, letra del logo, botón "+" flotante
+
+## Versión 1.2 — Presupuestos y botones rápidos
+> Requiere ejecutar `sql/05_presupuestos.sql` en Supabase.
+- Presupuestos con N° correlativo, ítems, mano de obra y validez; envío por WhatsApp
+- "Aceptó" crea el trabajo (con sus repuestos) listo para ponerle fecha
+- Botones "Voy en camino" (WhatsApp con tiempo estimado) y "Cómo llegar" (Google Maps)
+- Agenda por mes

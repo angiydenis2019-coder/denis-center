@@ -82,6 +82,7 @@ export async function vistaAjustes(app) {
 
     <h2>Herramientas</h2>
     <div class="tarjeta">
+      <a class="enlace-fila" href="#/presupuestos"><span class="con-ic">${ic('documento')} Presupuestos</span> <span>›</span></a>
       <a class="enlace-fila" href="#/precios"><span class="con-ic">${ic('precio')} Lista de precios</span> <span>›</span></a>
       <a class="enlace-fila" href="#/resumen"><span class="con-ic">${ic('grafico')} Resumen de ganancias</span> <span>›</span></a>
     </div>

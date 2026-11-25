@@ -1,6 +1,7 @@
 import { sb, usuarioActual } from '../supabase.js';
 import { cargarIndice, filtrar, tarjetaCliente } from '../buscar.js';
 import { montarRecordatorios } from '../recordatorios.js';
+import { montarPresupuestosInicio } from './presupuestos.js';
 import { cargarNegocio } from '../negocio.js';
 import { esc, pesos, fechaHora, fecha, etiquetaCobro } from '../util.js';
 
@@ -66,10 +67,12 @@ export async function vistaInicio(app) {
         <div class="sub">Trabajo del ${esc(fecha(d.fecha_realizado))} · total ${pesos(d.total)} ${etiquetaCobro(d.estado_cobro)}</div>
       </a>`).join('') : '<p class="vacio">Nadie te debe nada.</p>'}
 
+    <div id="presupuestos-ini" hidden></div>
     <div id="recordatorios" hidden></div>
     </div>
   `;
   cargarNegocio().catch(() => {}).finally(() => montarRecordatorios(app.querySelector('#recordatorios')));
+  montarPresupuestosInicio(app.querySelector('#presupuestos-ini')).catch(() => {});
 
   // Buscador: mientras haya texto, muestra resultados en lugar del tablero
   const input = app.querySelector('#buscar-inicio');

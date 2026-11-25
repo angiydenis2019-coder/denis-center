@@ -1,6 +1,7 @@
 import { ic } from '../iconos.js';
 import { sb, usuarioActual } from '../supabase.js';
 import { montarFotos } from '../fotos.js';
+import { botonesRapidos, activarRapidos } from '../rapidos.js';
 import { cargarPrecios, datalistRepuestos, precioDe } from './precios.js';
 import { negocio, tieneAlias, mensajeAlias, activarCopiarAlias, datosTransferencia } from '../negocio.js';
 import {
@@ -21,6 +22,8 @@ export async function vistaTrabajoDetalle(app, id) {
   const t = tr.data;
   if (!t) { app.innerHTML = '<p class="vacio">Trabajo no encontrado.</p>'; return; }
   const repuestos = rep.data, pagos = pag.data;
+  const { data: cliDir } = await sb.from('clientes').select('direccion').eq('id', t.cliente_id).maybeSingle();
+  const direccionCliente = cliDir?.direccion;
   const precios = await cargarPrecios();
   const cliente = { nombre: t.cliente_nombre, apellido: t.cliente_apellido };
 
@@ -47,6 +50,7 @@ export async function vistaTrabajoDetalle(app, id) {
       ${t.notas ? `<div class="dato"><b>Notas</b> ${esc(t.notas)}</div>` : ''}
     </div>
 
+    ${t.estado === 'agendado' ? `<div id="rapidos-tr">${botonesRapidos({ nombre: t.cliente_nombre, telefono: t.cliente_telefono, direccion: direccionCliente })}</div>` : ''}
     <div class="botones">
       ${t.estado === 'agendado' ? `<a class="btn" href="#/trabajo-editar/${esc(t.id)}/completar">${ic('check', 18)} Completar trabajo</a>` : ''}
       ${wa ? `<a class="btn whatsapp" href="${esc(wa)}" target="_blank" rel="noopener">${ic('chat', 18)} ${t.estado === 'realizado' ? 'Enviar comprobante' : 'Confirmar turno'}</a>` : ''}
@@ -100,6 +104,7 @@ export async function vistaTrabajoDetalle(app, id) {
   `;
 
   activarCopiarAlias(app.querySelector('[data-copiar-alias]'));
+  activarRapidos(app.querySelector('#rapidos-tr'));
   const cajaFotos = app.querySelector('#fotos');
   if (cajaFotos) montarFotos(cajaFotos, { trabajoId: t.id, equipoId: t.equipo_id });
 

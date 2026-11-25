@@ -4,14 +4,14 @@
 // Cada vez que cambies archivos de la app, subí el número de versión.
 importScripts('./js/sw-datos.js');
 
-const VERSION = 'denis-center-v11';
+const VERSION = 'denis-center-v12';
 const ARCHIVOS = [
   './', './index.html', './manifest.json', './css/estilos.css',
   './js/app.js', './js/config.js', './js/supabase.js', './js/util.js', './js/fotos.js', './js/negocio.js',
-  './js/buscar.js', './js/recordatorios.js', './js/sincronizar.js', './js/sw-datos.js', './js/iconos.js', './js/tema.js',
+  './js/buscar.js', './js/recordatorios.js', './js/sincronizar.js', './js/sw-datos.js', './js/iconos.js', './js/tema.js', './js/rapidos.js',
   './js/vistas/login.js', './js/vistas/inicio.js', './js/vistas/clientes.js',
   './js/vistas/equipos.js', './js/vistas/trabajos.js', './js/vistas/ajustes.js', './js/vistas/agenda.js',
-  './js/vistas/precios.js', './js/vistas/resumen.js',
+  './js/vistas/precios.js', './js/vistas/resumen.js', './js/vistas/presupuestos.js',
   './iconos/icono-192.png', './iconos/icono-512.png', './iconos/icono-maskable-512.png', './iconos/logo.png',
 ];
 

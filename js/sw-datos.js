@@ -8,7 +8,7 @@
 /* eslint-env serviceworker */
 
 const DB_NOMBRE = 'denis-center-offline';
-const TABLAS = ['clientes', 'equipos', 'trabajos', 'repuestos', 'pagos', 'fotos', 'precios', 'negocio', 'perfiles'];
+const TABLAS = ['clientes', 'equipos', 'trabajos', 'repuestos', 'pagos', 'fotos', 'precios', 'negocio', 'perfiles', 'presupuestos', 'presupuesto_items'];
 const ZONA = 'America/Argentina/Buenos_Aires';
 const GARANTIA_DIAS = 90;
 
@@ -19,12 +19,13 @@ let _db = null;
 function abrirDB() {
   if (_db) return Promise.resolve(_db);
   return new Promise((ok, mal) => {
-    const req = indexedDB.open(DB_NOMBRE, 1);
+    const req = indexedDB.open(DB_NOMBRE, 2);
     req.onupgradeneeded = () => {
       const db = req.result;
-      TABLAS.forEach((t) => db.createObjectStore(t, { keyPath: 'id' }));
-      db.createObjectStore('cola', { keyPath: 'n', autoIncrement: true });
-      db.createObjectStore('meta', { keyPath: 'k' });
+      const crear = (nombre, opciones) => { if (!db.objectStoreNames.contains(nombre)) db.createObjectStore(nombre, opciones); };
+      TABLAS.forEach((t) => crear(t, { keyPath: 'id' }));
+      crear('cola', { keyPath: 'n', autoIncrement: true });
+      crear('meta', { keyPath: 'k' });
     };
     req.onsuccess = () => { _db = req.result; ok(_db); };
     req.onerror = () => mal(req.error);
@@ -217,6 +218,8 @@ function defectos(tabla) {
   if (tabla === 'trabajos') return { estado: 'agendado', mano_obra: 0 };
   if (tabla === 'repuestos') return { cantidad: 1, precio_unitario: 0 };
   if (tabla === 'pagos') return { fecha: new Date().toISOString(), forma_pago: 'efectivo' };
+  if (tabla === 'presupuestos') return { fecha: new Date().toISOString(), estado: 'borrador', validez_dias: 15, mano_obra: 0, numero: null };
+  if (tabla === 'presupuesto_items') return { cantidad: 1, precio_unitario: 0 };
   return {};
 }
 

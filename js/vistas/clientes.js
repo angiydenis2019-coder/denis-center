@@ -3,6 +3,8 @@ import { sb } from '../supabase.js';
 import { negocio, tieneAlias, mensajeAlias, activarCopiarAlias } from '../negocio.js';
 import { esc, pesos, nombreCompleto, linkWhatsApp, datosFormulario, mensajeError, descEquipo } from '../util.js';
 import { tarjetaTrabajo } from './equipos.js';
+import { botonesRapidos, activarRapidos } from '../rapidos.js';
+import { montarPresupuestosCliente } from './presupuestos.js';
 import { cargarIndice, filtrar, tarjetaCliente } from '../buscar.js';
 
 // ---------------------------------------------------------------------
@@ -69,9 +71,11 @@ export async function vistaClienteFicha(app, id) {
       ${c.telefono ? `<a class="btn alias" href="${esc(linkWhatsApp(c.telefono, mensajeAlias(c.nombre, deuda)))}" target="_blank" rel="noopener">${ic('tarjeta', 18)} Pasar alias${deuda > 0 ? ' (' + pesos(deuda) + ')' : ''}</a>` : ''}
       <button class="btn secundario" type="button" data-copiar-alias>${ic('copiar', 18)} Copiar alias</button>
     </div>` : ''}
-    <div class="botones">
-      <a class="btn" href="#/trabajo-nuevo/${esc(c.id)}">+ Trabajo / turno</a>
-      <a class="btn secundario" href="#/equipo-nuevo/${esc(c.id)}">+ Equipo</a>
+    <div id="rapidos-cli">${botonesRapidos({ nombre: c.nombre, telefono: c.telefono, direccion: c.direccion })}</div>
+    <div class="botones acciones-cli">
+      <a class="btn" href="#/trabajo-nuevo/${esc(c.id)}">${ic('mas', 18)} Trabajo / turno</a>
+      <a class="btn secundario" href="#/presupuesto-nuevo/${esc(c.id)}">${ic('documento', 18)} Presupuesto</a>
+      <a class="btn secundario" href="#/equipo-nuevo/${esc(c.id)}">${ic('mas', 18)} Equipo</a>
     </div>
 
     <h2>Equipos</h2>
@@ -83,8 +87,13 @@ export async function vistaClienteFicha(app, id) {
 
     <h2>Historial de trabajos</h2>
     ${trabajos.data.length ? trabajos.data.map(tarjetaTrabajo).join('') : '<p class="vacio">Sin trabajos todavía.</p>'}
+
+    <h2>Presupuestos</h2>
+    <div id="pres-cli"><p class="vacio">Cargando…</p></div>
   `;
   activarCopiarAlias(app.querySelector('[data-copiar-alias]'));
+  activarRapidos(app.querySelector('#rapidos-cli'));
+  montarPresupuestosCliente(app.querySelector('#pres-cli'), c.id);
 }
 
 // ---------------------------------------------------------------------
@@ -111,7 +120,7 @@ export async function vistaClienteFormulario(app, id) {
       <input id="dni" name="dni" inputmode="numeric" pattern="[0-9.]*" value="${v('dni')}">
       <label for="telefono">Teléfono <span class="ayuda">— código de área + número, sin 0 ni 15 (ej: 3704 123456)</span></label>
       <input id="telefono" name="telefono" type="tel" value="${v('telefono')}">
-      <label for="direccion">Dirección</label>
+      <label for="direccion">Dirección <span class="ayuda">— con la localidad, o pegá el link de ubicación que te manden por WhatsApp</span></label>
       <input id="direccion" name="direccion" value="${v('direccion')}">
       <label for="notas">Notas</label>
       <textarea id="notas" name="notas">${v('notas')}</textarea>

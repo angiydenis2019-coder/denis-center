@@ -362,3 +362,12 @@ textarea { min-height: 80px; resize: vertical; }
 .agenda-hora small { font-weight: 600; color: var(--gris); font-size: .72rem; }
 .segmentado button { padding: 9px 12px; }
 a.tarjeta.agenda-item { display: flex; }
+
+/* ---------- Botones rápidos y presupuestos ---------- */
+.rapidos { margin: 12px 0; }
+.tiempos { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 10px; padding: 10px; border-radius: 12px; background: var(--superficie-2); }
+.tiempos .btn-mini { text-decoration: none; min-height: 36px; display: inline-flex; align-items: center; }
+.acciones-cli { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.acciones-cli .btn:first-child { grid-column: 1 / -1; }
+.ancho-seg { display: flex; width: 100%; margin-bottom: 8px; }
+.ancho-seg button { flex: 1; padding: 9px 4px; font-size: .88rem; }
