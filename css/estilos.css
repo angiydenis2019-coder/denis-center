@@ -343,3 +343,22 @@ textarea { min-height: 80px; resize: vertical; }
 @media (min-width: 760px) {
   .resumen { grid-template-columns: repeat(4, 1fr); }
 }
+
+/* ---------- Agenda: vista Mes ---------- */
+.mes { padding: 10px; }
+.mes-grilla { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+.mes-cab span { text-align: center; font-size: .75rem; font-weight: 700; color: var(--gris); padding: 4px 0; }
+.mes-dia { aspect-ratio: 1 / 1.05; min-height: 44px; border: 0; border-radius: 10px; background: var(--superficie-2); color: var(--texto);
+  font: inherit; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding: 5px 2px; gap: 3px; }
+.mes-dia.fuera { opacity: .35; }
+.mes-dia.hoy { outline: 2px solid var(--acento); background: var(--azul-claro); }
+.mes-dia.hoy .mes-num { color: var(--azul); font-weight: 800; }
+.mes-num { font-size: .9rem; font-weight: 600; }
+.mes-marcas { display: flex; align-items: center; gap: 3px; }
+.mes-turnos { display: inline-flex; align-items: center; justify-content: center; min-width: 18px; height: 18px; padding: 0 4px; border-radius: 9px;
+  background: var(--primario); color: var(--sobre-primario); font-size: .7rem; font-weight: 700; }
+.mes-hecho { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--verde); }
+.mes-ref { margin: 10px 2px 0; font-size: .8rem; display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+.agenda-hora small { font-weight: 600; color: var(--gris); font-size: .72rem; }
+.segmentado button { padding: 9px 12px; }
+a.tarjeta.agenda-item { display: flex; }

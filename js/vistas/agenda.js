@@ -2,7 +2,7 @@ import { sb } from '../supabase.js';
 import { esc, pesos, descEquipo } from '../util.js';
 
 // Estado de la agenda (se recuerda mientras la app esté abierta)
-let modo = 'dia';           // 'dia' | 'semana'
+let modo = 'dia';           // 'dia' | 'semana' | 'mes'
 let base = hoy();           // día que se está mirando
 
 function hoy() { const d = new Date(); d.setHours(0, 0, 0, 0); return d; }
@@ -12,11 +12,15 @@ const mismoDia = (a, b) => a.toDateString() === b.toDateString();
 const hora = (iso) => new Date(iso).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
 const fmtDia = new Intl.DateTimeFormat('es-AR', { weekday: 'long', day: 'numeric', month: 'long' });
 const fmtCorto = new Intl.DateTimeFormat('es-AR', { day: '2-digit', month: '2-digit' });
+const fmtMes = new Intl.DateTimeFormat('es-AR', { month: 'long', year: 'numeric' });
+const inicioMes = (d) => new Date(d.getFullYear(), d.getMonth(), 1);
+const sumarMeses = (d, n) => new Date(d.getFullYear(), d.getMonth() + n, 1);
+const mayus = (s) => s.replace(/^\w/, (c) => c.toUpperCase());
 
 export async function vistaAgenda(app) {
-  const desde = modo === 'dia' ? base : inicioSemana(base);
+  const desde = modo === 'dia' ? base : modo === 'semana' ? inicioSemana(base) : inicioMes(base);
   const dias = modo === 'dia' ? 1 : 7;
-  const hasta = sumarDias(desde, dias);
+  const hasta = modo === 'mes' ? sumarMeses(desde, 1) : sumarDias(desde, dias);
 
   const [turnos, hechos] = await Promise.all([
     sb.from('trabajos_resumen').select('id, estado, fecha_turno, falla_reportada, cliente_nombre, cliente_apellido, equipo_tipo, equipo_marca, equipo_modelo')
@@ -32,11 +36,12 @@ export async function vistaAgenda(app) {
   ].sort((a, b) => new Date(a.cuando) - new Date(b.cuando));
 
   const titulo = modo === 'dia'
-    ? fmtDia.format(desde).replace(/^\w/, (c) => c.toUpperCase())
-    : `Semana del ${fmtCorto.format(desde)} al ${fmtCorto.format(sumarDias(hasta, -1))}`;
+    ? mayus(fmtDia.format(desde))
+    : modo === 'semana' ? `Semana del ${fmtCorto.format(desde)} al ${fmtCorto.format(sumarDias(hasta, -1))}`
+    : mayus(fmtMes.format(desde));
 
-  const bloques = [];
-  for (let i = 0; i < dias; i++) {
+  const bloques = modo === 'mes' ? [vistaMes(desde, items)] : [];
+  for (let i = 0; modo !== 'mes' && i < dias; i++) {
     const dia = sumarDias(desde, i);
     const delDia = items.filter((t) => mismoDia(new Date(t.cuando), dia));
     const pendientes = delDia.filter((t) => t.estado === 'agendado').length;
@@ -58,6 +63,7 @@ export async function vistaAgenda(app) {
       <div class="segmentado">
         <button data-modo="dia" class="${modo === 'dia' ? 'activo' : ''}">Día</button>
         <button data-modo="semana" class="${modo === 'semana' ? 'activo' : ''}">Semana</button>
+        <button data-modo="mes" class="${modo === 'mes' ? 'activo' : ''}">Mes</button>
       </div>
     </div>
     <div class="fila agenda-nav">
@@ -65,14 +71,16 @@ export async function vistaAgenda(app) {
       <div class="agenda-titulo">${esc(titulo)}</div>
       <button class="btn secundario" data-mover="1" aria-label="Siguiente">›</button>
     </div>
-    ${(modo === 'dia' ? mismoDia(base, hoy()) : mismoDia(inicioSemana(base), inicioSemana(hoy()))) ? '' : '<div class="botones" style="justify-content:center;margin-top:0"><button class="btn-texto-azul" data-hoy>Volver a hoy</button></div>'}
+    ${(modo === 'dia' ? mismoDia(base, hoy()) : modo === 'semana' ? mismoDia(inicioSemana(base), inicioSemana(hoy())) : mismoDia(inicioMes(base), inicioMes(hoy()))) ? '' : '<div class="botones" style="justify-content:center;margin-top:0"><button class="btn-texto-azul" data-hoy>Volver a hoy</button></div>'}
     ${bloques.join('')}
   `;
 
   const recargar = () => vistaAgenda(app);
   app.querySelectorAll('[data-modo]').forEach((b) => b.addEventListener('click', () => { modo = b.dataset.modo; recargar(); }));
   app.querySelectorAll('[data-mover]').forEach((b) => b.addEventListener('click', () => {
-    base = sumarDias(base, Number(b.dataset.mover) * (modo === 'dia' ? 1 : 7)); recargar();
+    const n = Number(b.dataset.mover);
+    base = modo === 'mes' ? sumarMeses(base, n) : sumarDias(base, n * (modo === 'dia' ? 1 : 7));
+    recargar();
   }));
   app.querySelector('[data-hoy]')?.addEventListener('click', () => { base = hoy(); recargar(); });
   app.querySelectorAll('[data-ir]').forEach((b) => b.addEventListener('click', () => {
@@ -92,11 +100,39 @@ function itemAgenda(t) {
   const hecho = t.estado === 'realizado';
   return `
     <a class="tarjeta agenda-item ${hecho ? 'hecho' : ''}" href="#/trabajo/${esc(t.id)}">
-      <div class="agenda-hora">${esc(hora(t.cuando))}</div>
+      <div class="agenda-hora">${t.conFecha ? `<small>${esc(fmtCorto.format(new Date(t.cuando)))}</small><br>` : ''}${esc(hora(t.cuando))}</div>
       <div class="agenda-cuerpo">
         <div class="fila"><span class="titulo">${esc([t.cliente_nombre, t.cliente_apellido].filter(Boolean).join(' '))}</span>
           ${hecho ? `<span class="sub">✔ ${pesos(t.total)}${Number(t.saldo) > 0 ? ' · debe ' + pesos(t.saldo) : ''}</span>` : ''}</div>
         <div class="sub">${esc([descEquipo(t), hecho ? t.trabajo_realizado : t.falla_reportada].filter(Boolean).join(' — '))}</div>
       </div>
     </a>`;
+}
+
+// Calendario del mes: cada día muestra cuántos turnos y trabajos hay; tocar un día abre la vista Día
+function vistaMes(primero, items) {
+  const inicio = inicioSemana(primero);
+  const ultimo = new Date(primero.getFullYear(), primero.getMonth() + 1, 0);
+  const fin = sumarDias(inicioSemana(ultimo), 7);
+  const celdas = [];
+  for (let d = inicio; d < fin; d = sumarDias(d, 1)) {
+    const delDia = items.filter((t) => mismoDia(new Date(t.cuando), d));
+    const turnos = delDia.filter((t) => t.estado === 'agendado').length;
+    const hechos = delDia.length - turnos;
+    const fuera = d.getMonth() !== primero.getMonth();
+    const etiqueta = `${d.getDate()}: ${turnos} turno(s), ${hechos} trabajo(s) hecho(s)`;
+    celdas.push(`<button class="mes-dia${fuera ? ' fuera' : ''}${mismoDia(d, hoy()) ? ' hoy' : ''}" data-ir="${d.toISOString()}" aria-label="${esc(etiqueta)}">
+      <span class="mes-num">${d.getDate()}</span>
+      <span class="mes-marcas">${turnos ? `<span class="mes-turnos">${turnos}</span>` : ''}${hechos ? '<span class="mes-hecho"></span>' : ''}</span>
+    </button>`);
+  }
+  const pendientes = items.filter((t) => t.estado === 'agendado');
+  return `
+    <div class="tarjeta mes">
+      <div class="mes-grilla mes-cab">${['Lu', 'Ma', 'Mi', 'Ju', 'Vi', 'Sá', 'Do'].map((x) => `<span>${x}</span>`).join('')}</div>
+      <div class="mes-grilla">${celdas.join('')}</div>
+      <p class="sub mes-ref"><span class="mes-turnos">1</span> cantidad de turnos · <span class="mes-hecho"></span> trabajo hecho · tocá un día para abrirlo</p>
+    </div>
+    <h2>Turnos del mes <span class="sub">(${pendientes.length})</span></h2>
+    ${pendientes.length ? pendientes.map((t) => itemAgenda({ ...t, conFecha: true })).join('') : '<p class="vacio">No hay turnos agendados este mes.</p>'}`;
 }
