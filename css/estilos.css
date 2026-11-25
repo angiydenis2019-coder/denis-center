@@ -162,3 +162,22 @@ p.ayuda a, .dato a { color: var(--azul); }
 /* buscador */
 .pista { color: var(--azul); margin-top: 4px; }
 #buscar-inicio { margin-bottom: 14px; }
+
+/* --- Agenda --- */
+.segmentado { display: inline-flex; border: 1px solid var(--azul); border-radius: 10px; overflow: hidden; }
+.segmentado button { border: 0; background: #fff; color: var(--azul); padding: 8px 14px; font: inherit; font-weight: 600; cursor: pointer; }
+.segmentado button.activo { background: var(--azul); color: #fff; }
+.agenda-nav { margin: 4px 0 8px; }
+.agenda-nav .btn { min-height: 40px; padding: 0 14px; font-size: 1.3rem; }
+.agenda-titulo { font-weight: 700; text-align: center; flex: 1; }
+.agenda-dia { margin-bottom: 14px; }
+.agenda-dia.es-hoy .agenda-cab button { color: var(--naranja); }
+.agenda-cab { border-bottom: 2px solid var(--borde); padding: 6px 0; margin-bottom: 8px; }
+.agenda-item { display: flex; gap: 12px; align-items: flex-start; border-left: 4px solid var(--azul); }
+.agenda-item.hecho { border-left-color: var(--verde); opacity: .85; }
+.agenda-hora { font-weight: 700; color: var(--azul); min-width: 46px; }
+.agenda-cuerpo { flex: 1; min-width: 0; }
+.btn-texto-azul { background: none; border: 0; color: var(--azul); font: inherit; font-weight: 700; cursor: pointer; padding: 4px 0; text-align: left; }
+.btn-mas { width: 100%; background: none; border: 1px dashed var(--borde); border-radius: 10px; color: var(--azul); padding: 10px; font: inherit; cursor: pointer; }
+.btn-mini { background: var(--azul-claro); color: var(--azul); border: 0; border-radius: 8px; padding: 6px 10px; font: inherit; font-size: .85rem; font-weight: 600; cursor: pointer; }
+.vacio.chico { padding: 0 0 4px; font-size: .9rem; }

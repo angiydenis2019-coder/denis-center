@@ -1,11 +1,11 @@
-import { sb } from '../supabase.js';
+import { sb, usuarioActual } from '../supabase.js';
 import { negocio, cargarNegocio, actualizarNegocioLocal } from '../negocio.js';
 import { esc, datosFormulario, mensajeError, fecha, FORMAS_PAGO } from '../util.js';
 
 const VERSION_APP = '1.0 · etapa 4';
 
 export async function vistaAjustes(app) {
-  const { data: { user } } = await sb.auth.getUser();
+  const user = await usuarioActual();
   const { data: yo, error } = await sb.from('perfiles').select('*').eq('id', user.id).maybeSingle();
   if (error) throw error;
   const esAdmin = yo?.rol === 'admin' && yo?.activo;

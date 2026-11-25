@@ -1,4 +1,4 @@
-import { sb } from '../supabase.js';
+import { sb, usuarioActual } from '../supabase.js';
 import { montarFotos } from '../fotos.js';
 import { negocio } from '../negocio.js';
 import {
@@ -154,7 +154,10 @@ function textoComprobante(t, repuestos) {
 //   #/trabajo-nuevo[/clienteId[/equipoId]]   #/trabajo-editar/id[/completar]
 // ---------------------------------------------------------------------
 export async function vistaTrabajoFormulario(app, { id = null, clienteId = null, equipoId = null, completar = false }) {
-  let t = { cliente_id: clienteId, equipo_id: equipoId, estado: 'agendado', fecha_turno: null, fecha_realizado: null,
+  // Fecha sugerida desde la Agenda (botón "+ Turno" de un día)
+  const sugerida = !id && sessionStorage.getItem('dc_fecha_turno');
+  if (sugerida) sessionStorage.removeItem('dc_fecha_turno');
+  let t = { cliente_id: clienteId, equipo_id: equipoId, estado: 'agendado', fecha_turno: sugerida ? new Date(sugerida).toISOString() : null, fecha_realizado: null,
     falla_reportada: '', diagnostico: '', trabajo_realizado: '', mano_obra: 0, notas: '' };
   if (id) {
     const { data, error } = await sb.from('trabajos').select('*').eq('id', id).maybeSingle();
@@ -281,7 +284,7 @@ export async function vistaTrabajoFormulario(app, { id = null, clienteId = null,
       ({ error: err } = await sb.from('trabajos').update(datos).eq('id', id));
     } else {
       nuevoId = crypto.randomUUID();
-      const { data: { user } } = await sb.auth.getUser();
+      const user = await usuarioActual();
       ({ error: err } = await sb.from('trabajos').insert({ id: nuevoId, cliente_id: d.cliente_id, tecnico_id: user.id, ...datos }));
     }
     boton.disabled = false;

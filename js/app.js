@@ -6,6 +6,7 @@ import { vistaClientes, vistaClienteFicha, vistaClienteFormulario } from './vist
 import { vistaEquipoFicha, vistaEquipoFormulario } from './vistas/equipos.js';
 import { vistaTrabajoDetalle, vistaTrabajoFormulario } from './vistas/trabajos.js';
 import { vistaAjustes } from './vistas/ajustes.js';
+import { vistaAgenda } from './vistas/agenda.js';
 import { cargarNegocio } from './negocio.js';
 import { esc } from './util.js';
 
@@ -28,6 +29,7 @@ const rutas = {
   'trabajo':        (id) => vistaTrabajoDetalle(app, id),
   'trabajo-nuevo':  (clienteId, equipoId) => vistaTrabajoFormulario(app, { clienteId, equipoId }),
   'ajustes':        () => vistaAjustes(app),
+  'agenda':         () => vistaAgenda(app),
   'trabajo-editar': (id, extra) => vistaTrabajoFormulario(app, { id, completar: extra === 'completar' }),
 };
 

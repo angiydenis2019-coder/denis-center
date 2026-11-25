@@ -9,3 +9,9 @@ export const sb = configurado
       auth: { persistSession: true, autoRefreshToken: true },
     })
   : null;
+
+// Usuario de la sesión guardada (no necesita conexión)
+export async function usuarioActual() {
+  const { data } = await sb.auth.getSession();
+  return data.session?.user ?? null;
+}

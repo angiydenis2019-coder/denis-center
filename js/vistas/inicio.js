@@ -1,10 +1,10 @@
-import { sb } from '../supabase.js';
+import { sb, usuarioActual } from '../supabase.js';
 import { cargarIndice, filtrar, tarjetaCliente } from '../buscar.js';
 import { esc, pesos, fechaHora, fecha, etiquetaCobro } from '../util.js';
 
 export async function vistaInicio(app) {
   // Perfil: avisar si el usuario todavía no fue activado
-  const { data: { user } } = await sb.auth.getUser();
+  const user = await usuarioActual();
   const { data: perfil } = await sb.from('perfiles').select('nombre, rol, activo').eq('id', user.id).maybeSingle();
   if (!perfil?.activo) {
     app.innerHTML = `<div class="tarjeta"><h1>Usuario pendiente</h1>

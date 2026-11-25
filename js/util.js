@@ -11,7 +11,7 @@ const fmtPesos = new Intl.NumberFormat('es-AR', { style: 'currency', currency: '
 export const pesos = (n) => fmtPesos.format(Number(n) || 0);
 
 const fmtFecha = new Intl.DateTimeFormat('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' });
-const fmtFechaHora = new Intl.DateTimeFormat('es-AR', { weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+const fmtFechaHora = new Intl.DateTimeFormat('es-AR', { weekday: 'short', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' });
 export const fecha = (v) => (v ? fmtFecha.format(new Date(v.length === 10 ? v + 'T12:00:00' : v)) : '');
 export const fechaHora = (v) => (v ? fmtFechaHora.format(new Date(v)) : '');
 
