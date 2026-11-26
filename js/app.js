@@ -15,6 +15,8 @@ import { iniciarSincronizacion, prepararSalida, pedirSincronizacion } from './si
 import { esc } from './util.js';
 import { siguienteTema, temaActual, aplicarTema } from './tema.js';
 import { iniciarDictado } from './dictado.js';
+import { vistaPapelera } from './vistas/papelera.js';
+import { vistaRecibo } from './vistas/recibo.js';
 
 const app = document.getElementById('app');
 const nav = document.getElementById('nav');
@@ -41,6 +43,8 @@ const rutas = {
   'precios':        () => vistaPrecios(app),
   'resumen':        () => vistaResumen(app),
   'presupuestos':   () => vistaPresupuestos(app),
+  'papelera':       () => vistaPapelera(app),
+  'recibo':         (id) => vistaRecibo(app, id),
   'presupuesto':    (id) => vistaPresupuestoDetalle(app, id),
   'presupuesto-nuevo': (clienteId, equipoId) => vistaPresupuestoFormulario(app, { clienteId, equipoId }),
   'presupuesto-editar': (id) => vistaPresupuestoFormulario(app, { id }),
@@ -66,7 +70,7 @@ async function navegar() {
   const ruta = rutas[nombre] ? nombre : 'inicio';
   nav.querySelectorAll('a').forEach((a) => {
     const r = a.dataset.ruta;
-    a.classList.toggle('activo', r === ruta || (r === 'clientes' && /^(cliente|equipo|trabajo|presupuesto-|presupuesto$)/.test(ruta)) || (r === 'ajustes' && /^(precios|resumen|presupuestos)/.test(ruta)));
+    a.classList.toggle('activo', r === ruta || (r === 'clientes' && /^(cliente|equipo|trabajo|presupuesto-|presupuesto$|recibo)/.test(ruta)) || (r === 'ajustes' && /^(precios|resumen|presupuestos|papelera)/.test(ruta)));
   });
 
   fab.hidden = !['inicio', 'agenda', 'clientes', 'cliente', 'equipo'].includes(ruta);

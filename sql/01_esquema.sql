@@ -235,7 +235,7 @@ left join lateral (
   select sum(monto) as total_pagado
   from public.pagos where trabajo_id = t.id and not eliminado
 ) p on true
-where not t.eliminado;
+where not t.eliminado and not c.eliminado;
 
 -- ---------------------------------------------------------------------
 -- 10. SEGURIDAD (Row Level Security): solo miembros activos ven datos

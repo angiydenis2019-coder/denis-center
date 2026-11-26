@@ -1,3 +1,4 @@
+import { botonEliminar, activarEliminar } from './papelera.js';
 import { ic } from '../iconos.js';
 import { sb, usuarioActual } from '../supabase.js';
 import { montarFotos } from '../fotos.js';
@@ -32,7 +33,7 @@ export async function vistaTrabajoDetalle(app, id) {
     : t.estado === 'agendado' ? `Turno: ${t.fecha_turno ? esc(fechaHora(t.fecha_turno)) : 'sin fecha'}` : 'Turno cancelado';
 
   const wa = t.estado === 'realizado'
-    ? linkWhatsApp(t.cliente_telefono, textoComprobante(t, repuestos))
+    ? linkWhatsApp(t.cliente_telefono, textoComprobante(t))
     : t.estado === 'agendado' && t.fecha_turno
       ? linkWhatsApp(t.cliente_telefono, `Hola ${t.cliente_nombre}, te confirmo la visita para el ${fechaHora(t.fecha_turno)}. ${negocio().tecnico} (${negocio().nombre}).`)
       : null;
@@ -53,7 +54,8 @@ export async function vistaTrabajoDetalle(app, id) {
     ${t.estado === 'agendado' ? `<div id="rapidos-tr">${botonesRapidos({ nombre: t.cliente_nombre, telefono: t.cliente_telefono, direccion: direccionCliente })}</div>` : ''}
     <div class="botones">
       ${t.estado === 'agendado' ? `<a class="btn" href="#/trabajo-editar/${esc(t.id)}/completar">${ic('check', 18)} Completar trabajo</a>` : ''}
-      ${wa ? `<a class="btn whatsapp" href="${esc(wa)}" target="_blank" rel="noopener">${ic('chat', 18)} ${t.estado === 'realizado' ? 'Enviar comprobante' : 'Confirmar turno'}</a>` : ''}
+      ${wa ? `<a class="btn whatsapp" href="${esc(wa)}" target="_blank" rel="noopener">${ic('chat', 18)} ${t.estado === 'realizado' ? 'Mensaje' : 'Confirmar turno'}</a>` : ''}
+      ${t.estado === 'realizado' ? `<a class="btn secundario" href="#/recibo/${esc(t.id)}">${ic('documento', 18)} Boleta</a>` : ''}
       <a class="btn secundario" href="#/trabajo-editar/${esc(t.id)}">${ic('editar', 18)} Editar</a>
     </div>
     ${tieneAlias() && t.estado === 'realizado' && Number(t.saldo) > 0 ? `<div class="botones">
@@ -101,10 +103,13 @@ export async function vistaTrabajoDetalle(app, id) {
       </form>` : ''}
     </div>`}
     <p id="d-error" class="error" hidden></p>
+    ${botonEliminar(t.estado === 'agendado' ? 'Eliminar turno' : 'Eliminar trabajo')}
   `;
 
   activarCopiarAlias(app.querySelector('[data-copiar-alias]'));
   activarRapidos(app.querySelector('#rapidos-tr'));
+  activarEliminar(app, { tabla: 'trabajos', id: t.id, destino: `#/cliente/${t.cliente_id}`,
+    pregunta: t.estado === 'agendado' ? '¿Eliminar este turno?' : '¿Eliminar este trabajo? Sus repuestos, pagos y fotos dejan de contarse.' });
   const cajaFotos = app.querySelector('#fotos');
   if (cajaFotos) montarFotos(cajaFotos, { trabajoId: t.id, equipoId: t.equipo_id });
 
@@ -147,7 +152,7 @@ export async function vistaTrabajoDetalle(app, id) {
 }
 
 // Texto del comprobante que se manda por WhatsApp
-function textoComprobante(t, repuestos) {
+function textoComprobante(t) {
   const n = negocio();
   const l = [
     `*${n.nombre}* — Comprobante de trabajo`,
@@ -156,11 +161,8 @@ function textoComprobante(t, repuestos) {
   ];
   if (t.equipo_id) l.push(`Equipo: ${descEquipo(t)}`);
   if (t.trabajo_realizado) l.push(`Trabajo realizado: ${t.trabajo_realizado}`);
-  if (repuestos.length) {
-    l.push('Repuestos:');
-    repuestos.forEach((r) => l.push(`• ${r.descripcion} x${Number(r.cantidad)}: ${pesos(r.cantidad * r.precio_unitario)}`));
-  }
-  l.push(`Mano de obra: ${pesos(t.mano_obra)}`, `*Total: ${pesos(t.total)}*`);
+  // Sin detalle: el cliente ve solo el total (el detalle queda en la app)
+  l.push(`*Total: ${pesos(t.total)}* (mano de obra y repuestos incluidos)`);
   if (Number(t.pagado) > 0) l.push(`Pagado: ${pesos(t.pagado)}`);
   if (Number(t.saldo) > 0) {
     l.push(`*Saldo pendiente: ${pesos(t.saldo)}*`);

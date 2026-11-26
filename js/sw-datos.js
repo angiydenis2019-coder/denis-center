@@ -138,7 +138,7 @@ async function trabajosResumen() {
   pagos.filter((p) => !p.eliminado).forEach((p) => { sumaPag[p.trabajo_id] = (sumaPag[p.trabajo_id] || 0) + Number(p.monto); });
   const hoy = fechaLocal(new Date().toISOString());
 
-  return trabajos.filter((t) => !t.eliminado && cli[t.cliente_id]).map((t) => {
+  return trabajos.filter((t) => !t.eliminado && cli[t.cliente_id] && !cli[t.cliente_id].eliminado).map((t) => {
     const c = cli[t.cliente_id], e = eq[t.equipo_id] || {};
     const totalRep = Math.round((sumaRep[t.id] || 0) * 100) / 100;
     const total = Number(t.mano_obra || 0) + totalRep;

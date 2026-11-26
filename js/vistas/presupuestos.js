@@ -1,3 +1,4 @@
+import { botonEliminar, activarEliminar } from './papelera.js';
 import { sb, usuarioActual } from '../supabase.js';
 import { ic } from '../iconos.js';
 import { negocio } from '../negocio.js';
@@ -42,8 +43,9 @@ function tarjeta(p, items, conCliente = true) {
 // ---------------------------------------------------------------------
 let filtro = 'pendientes';
 export async function vistaPresupuestos(app) {
-  const { data, error } = await sb.from('presupuestos').select('*, clientes(id, nombre, apellido)')
+  const { data: todos, error } = await sb.from('presupuestos').select('*, clientes(id, nombre, apellido, eliminado)')
     .eq('eliminado', false).order('fecha', { ascending: false }).limit(300);
+  const data = (todos || []).filter((p) => !p.clientes?.eliminado);
   if (error) {
     app.innerHTML = `<h1>Presupuestos</h1><div class="tarjeta banner aviso-sql">${ic('alerta', 18)} Falta ejecutar <b>sql/05_presupuestos.sql</b> en Supabase.</div>`;
     return;
@@ -79,8 +81,9 @@ export async function montarPresupuestosCliente(caja, clienteId) {
 
 // Sección en Inicio: enviados esperando respuesta
 export async function montarPresupuestosInicio(caja) {
-  const { data, error } = await sb.from('presupuestos').select('*, clientes(id, nombre, apellido)')
+  const { data: todos, error } = await sb.from('presupuestos').select('*, clientes(id, nombre, apellido, eliminado)')
     .eq('estado', 'enviado').eq('eliminado', false).order('fecha', { ascending: true });
+  const data = (todos || []).filter((p) => !p.clientes?.eliminado);
   if (error || !data.length) { caja.hidden = true; return; }
   const items = await itemsDe(data.map((p) => p.id)).catch(() => []);
   caja.hidden = false;
@@ -143,8 +146,11 @@ export async function vistaPresupuestoDetalle(app, id) {
     </div>` : ''}
     ${p.estado === 'aceptado' && p.trabajo_id ? `<div class="botones"><a class="btn" href="#/trabajo/${esc(p.trabajo_id)}">Ver el trabajo</a></div>` : ''}
     ${p.estado === 'rechazado' ? '<div class="botones"><button class="btn secundario" id="btn-reabrir" type="button">Volver a pendiente</button></div>' : ''}
-    <p id="p-error" class="error" hidden></p>`;
+    <p id="p-error" class="error" hidden></p>
+    ${botonEliminar('Eliminar presupuesto')}`;
 
+  activarEliminar(app, { tabla: 'presupuestos', id, destino: `#/cliente/${p.cliente_id}`,
+    pregunta: `¿Eliminar el presupuesto ${numeroTxt(p)}?${p.trabajo_id ? ' El trabajo que se creó desde él no se elimina.' : ''}` });
   const error = app.querySelector('#p-error');
   const fallo = (err) => { error.textContent = mensajeError(err); error.hidden = false; };
   const recargar = () => vistaPresupuestoDetalle(app, id);

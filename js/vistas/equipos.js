@@ -1,3 +1,4 @@
+import { botonEliminar, activarEliminar } from './papelera.js';
 import { ic } from '../iconos.js';
 import { sb } from '../supabase.js';
 import { montarFotos } from '../fotos.js';
@@ -44,8 +45,11 @@ export async function vistaEquipoFicha(app, id) {
 
     <h2>Historial de este equipo</h2>
     ${trabajos.length ? trabajos.map(tarjetaTrabajo).join('') : '<p class="vacio">Sin trabajos todavía.</p>'}
+    ${botonEliminar('Eliminar equipo')}
   `;
   montarFotos(app.querySelector('#fotos'), { equipoId: e.id });
+  activarEliminar(app, { tabla: 'equipos', id: e.id, destino: `#/cliente/${e.cliente_id}`,
+    pregunta: `¿Eliminar el equipo ${descEquipo(e)}? Los trabajos que tenga quedan en el historial del cliente.` });
 }
 
 // Tarjeta de trabajo reutilizable (ficha cliente / ficha equipo)

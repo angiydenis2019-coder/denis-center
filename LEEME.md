@@ -115,3 +115,9 @@ iconos/
 - Botón de micrófono en los campos de texto y números (nombres, direcciones, notas, repuestos, precios, buscadores)
 - Números dictados: "18 mil" → 18000; teléfonos dictados de a dígitos
 - Se puede ocultar en Ajustes → Dictado por voz. Necesita señal.
+
+## Versión 1.4 — Eliminar, papelera y boleta
+> Requiere ejecutar `sql/06_eliminar.sql` en Supabase.
+- Eliminar clientes, equipos, trabajos/turnos y presupuestos; Papelera para recuperarlos (Ajustes → Herramientas)
+- Boleta / comprobante de pago en imagen con logo: concepto editable y total (mano de obra y repuestos incluidos), sin detalle; compartir por WhatsApp o descargar
+- El mensaje de WhatsApp del trabajo ya no muestra el detalle de repuestos

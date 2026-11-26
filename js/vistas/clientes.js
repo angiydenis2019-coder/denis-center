@@ -1,3 +1,4 @@
+import { botonEliminar, activarEliminar } from './papelera.js';
 import { ic } from '../iconos.js';
 import { sb } from '../supabase.js';
 import { negocio, tieneAlias, mensajeAlias, activarCopiarAlias } from '../negocio.js';
@@ -90,10 +91,13 @@ export async function vistaClienteFicha(app, id) {
 
     <h2>Presupuestos</h2>
     <div id="pres-cli"><p class="vacio">Cargando…</p></div>
+    ${botonEliminar('Eliminar cliente')}
   `;
   activarCopiarAlias(app.querySelector('[data-copiar-alias]'));
   activarRapidos(app.querySelector('#rapidos-cli'));
   montarPresupuestosCliente(app.querySelector('#pres-cli'), c.id);
+  activarEliminar(app, { tabla: 'clientes', id: c.id, destino: '#/clientes',
+    pregunta: `¿Eliminar a ${nombreCompleto(c)}? Sus equipos, trabajos y presupuestos dejan de aparecer.` });
 }
 
 // ---------------------------------------------------------------------
