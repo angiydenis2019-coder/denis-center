@@ -439,3 +439,8 @@ a.tarjeta.agenda-item { display: flex; }
   color: var(--gris); font-size: .82rem; opacity: .9; }
 .pie-dc img { width: 32px; height: auto; background: #fff; border-radius: 6px; padding: 2px; }
 .pie-dc b { font-family: Montserrat, Inter, sans-serif; font-style: italic; font-weight: 800; letter-spacing: -.2px; }
+
+.editar-tecnico { margin-top: 8px; }
+.editar-tecnico summary { cursor: pointer; color: var(--acento); font-weight: 600; font-size: .9rem; display: flex; align-items: center; gap: 6px; }
+.editar-tecnico label { display: block; font-size: .85rem; margin-top: 6px; }
+.editar-tecnico input { margin-top: 2px; }

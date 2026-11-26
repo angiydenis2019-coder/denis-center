@@ -67,9 +67,13 @@ export async function vistaAdmin(app) {
     <details class="tarjeta" id="det-nuevo">
       <summary><b>${ic('mas', 18)} Nuevo técnico</b></summary>
       <form id="f-nuevo" style="margin-top:12px">
-        <label for="nt-nombre">Nombre y apellido del técnico</label>
-        <input id="nt-nombre" name="nombre" required autocomplete="off">
-        <label for="nt-negocio">Nombre del negocio <span class="ayuda">— después lo puede cambiar él</span></label>
+        <label for="nt-apellido">Apellido</label>
+        <input id="nt-apellido" name="apellido" required autocomplete="off" autocapitalize="words">
+        <label for="nt-nombre">Nombre</label>
+        <input id="nt-nombre" name="nombre" required autocomplete="off" autocapitalize="words">
+        <label for="nt-localidad">Localidad</label>
+        <input id="nt-localidad" name="localidad" autocomplete="off" placeholder="ej: Clorinda">
+        <label for="nt-negocio">Nombre del negocio <span class="ayuda">— opcional, después lo puede cambiar él</span></label>
         <input id="nt-negocio" name="negocio" placeholder="ej: Frío Total">
         <label for="nt-email">Correo <span class="ayuda">— con el que va a entrar</span></label>
         <input id="nt-email" name="email" type="email" required autocapitalize="none" autocomplete="off">
@@ -92,16 +96,21 @@ export async function vistaAdmin(app) {
     msg.hidden = true;
     const b = f.querySelector('button[type=submit]');
     b.disabled = true; b.textContent = 'Creando…';
+    const apellido = f.apellido.value.trim();
+    const nombre = f.nombre.value.trim();
+    const localidad = f.localidad.value.trim();
     const datos = {
       accion: 'crear',
-      nombre: f.nombre.value.trim(),
-      negocio: f.negocio.value.trim(),
+      nombre: `${nombre} ${apellido}`,
+      negocio: f.negocio.value.trim() || `${apellido} ${nombre}`,
       email: f.email.value.trim(),
       telefono: f.telefono.value.trim(),
     };
     try {
       const r = await llamar(datos);
-      zona.innerHTML = tarjetaClave({ titulo: `Cuenta creada para ${datos.nombre}`, nombre: datos.nombre, email: r.email, clave: r.clave, telefono: datos.telefono });
+      const { error: eDatos } = await sb.rpc('admin_set_datos', { p_negocio: r.negocio_id, p_apellido: apellido, p_nombre: nombre, p_localidad: localidad });
+      zona.innerHTML = tarjetaClave({ titulo: `Cuenta creada para ${apellido}, ${nombre}`, nombre, email: r.email, clave: r.clave, telefono: datos.telefono })
+        + (eDatos ? `<p class="error">La cuenta se creó, pero no se guardaron apellido y localidad: falta ejecutar sql/10_datos_tecnico.sql en Supabase.</p>` : '');
       activarCopiar(zona);
       f.reset();
       app.querySelector('#det-nuevo').open = false;
@@ -125,14 +134,14 @@ async function pintarLista(app, zona) {
   }
   const activos = data.filter((n) => n.activo).length;
   caja.innerHTML = `<p class="sub" style="margin-top:0">${data.length} cuenta(s) · ${activos} activa(s)</p>` + data.map((n) => `
-    <div class="negocio-fila linea" data-id="${esc(n.id)}" data-usuario="${esc(n.usuario_id || '')}" data-tel="${esc(n.telefono || '')}" data-nombre="${esc(n.tecnico || n.nombre)}" data-email="${esc(n.email || '')}">
+    <div class="negocio-fila linea" data-id="${esc(n.id)}" data-usuario="${esc(n.usuario_id || '')}" data-tel="${esc(n.telefono || '')}" data-nombre="${esc(n.nombre_tecnico || n.tecnico || n.nombre)}" data-email="${esc(n.email || '')}">
       <div class="titulo">
         <b>${esc(n.nombre)}</b>
         ${n.es_mio ? '<span class="etiqueta-estado">Vos</span>' : ''}
         ${!n.activo ? '<span class="etiqueta-estado suspendido">Suspendida</span>' : (n.es_mio ? '' : '<span class="etiqueta-estado">Activa</span>')}
         ${n.debe_cambiar_clave ? '<span class="etiqueta-estado provisoria">Clave provisoria</span>' : ''}
       </div>
-      <div class="sub">${esc(n.tecnico || '')}${n.email ? ' · ' + esc(n.email) : ''}</div>
+      <div class="sub">${n.apellido ? `<b>${esc(n.apellido)}${n.nombre_tecnico ? ', ' + esc(n.nombre_tecnico) : ''}</b>` : esc(n.tecnico || '')}${n.localidad ? ' · ' + esc(n.localidad) : ''}${n.email ? ' · ' + esc(n.email) : ''}</div>
       <div class="sub">${Number(n.clientes)} clientes · ${Number(n.trabajos)} trabajos · ${Number(n.presupuestos)} presupuestos · ${Number(n.fotos)} fotos</div>
       <div class="sub">Alta: ${fecha(n.creado_en)} · Último ingreso: ${n.ultimo_ingreso ? fechaHora(n.ultimo_ingreso) : 'nunca'}</div>
       ${n.es_mio || !('terminos_version' in n) ? '' : `<div class="sub">Términos: ${n.terminos_aceptados_en ? `v${esc(n.terminos_version)} aceptados el ${fechaHora(n.terminos_aceptados_en)}` : '<b>todavía no aceptó</b>'}</div>`}
@@ -141,12 +150,24 @@ async function pintarLista(app, zona) {
         ${n.activo
           ? `<button class="btn-peligro" type="button" data-accion="suspender">Suspender</button>`
           : `<button class="btn" type="button" data-accion="reactivar">Reactivar</button>`}
-        ${n.telefono ? `<a class="btn secundario" target="_blank" rel="noopener" href="${esc(linkWhatsApp(n.telefono, `Hola ${n.tecnico || ''}`))}">${ic('chat', 16)} WhatsApp</a>` : ''}
-      </div>`}
+        ${n.telefono ? `<a class="btn secundario" target="_blank" rel="noopener" href="${esc(linkWhatsApp(n.telefono, `Hola ${n.nombre_tecnico || n.tecnico || ''}`))}">${ic('chat', 16)} WhatsApp</a>` : ''}
+      </div>
+      ${'localidad' in n ? `<details class="editar-tecnico">
+        <summary>${ic('editar', 16)} Editar datos</summary>
+        <form class="f-datos">
+          <label>Apellido<input name="apellido" value="${esc(n.apellido || '')}" autocapitalize="words"></label>
+          <label>Nombre<input name="nombre" value="${esc(n.nombre_tecnico || '')}" autocapitalize="words"></label>
+          <label>Localidad<input name="localidad" value="${esc(n.localidad || '')}"></label>
+          <div class="botones"><button class="btn" type="submit">Guardar</button></div>
+        </form>
+      </details>` : ''}`}
     </div>`).join('') + '<p class="msg sub" hidden></p>';
 
-  const msg = caja.querySelector('.msg');
-  const avisar = (t, esError) => { msg.hidden = false; msg.textContent = t; msg.classList.toggle('error', esError); };
+  const avisar = (t, esError) => {
+    const msg = caja.querySelector(':scope > .msg');
+    if (!msg) return;
+    msg.hidden = false; msg.textContent = t; msg.classList.toggle('error', esError);
+  };
 
   caja.querySelectorAll('.negocio-fila').forEach((fila) => {
     const id = fila.dataset.id;
@@ -161,6 +182,14 @@ async function pintarLista(app, zona) {
       await pintarLista(app, zona);
       avisar(activo ? `✔ ${nombre} reactivada` : `✔ ${nombre} suspendida`, false);
     };
+    fila.querySelector('.f-datos')?.addEventListener('submit', async (ev) => {
+      ev.preventDefault();
+      const fd = ev.currentTarget;
+      const { error } = await sb.rpc('admin_set_datos', { p_negocio: id, p_apellido: fd.apellido.value, p_nombre: fd.nombre.value, p_localidad: fd.localidad.value });
+      if (error) return avisar(mensajeError(error), true);
+      await pintarLista(app, zona);
+      avisar(`✔ Datos de ${nombre} guardados`, false);
+    });
     fila.querySelector('[data-accion=suspender]')?.addEventListener('click', () => cambiarEstado(false));
     fila.querySelector('[data-accion=reactivar]')?.addEventListener('click', () => cambiarEstado(true));
     fila.querySelector('[data-accion=clave]')?.addEventListener('click', async (e) => {
