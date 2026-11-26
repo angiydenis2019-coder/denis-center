@@ -462,3 +462,13 @@ a.tarjeta.agenda-item { display: flex; }
 .clima-datos span { color: var(--gris); }
 .clima-cargando { opacity: .6; }
 .clima-nota { margin: 4px 0 12px; }
+
+/* ---- Ajustes: secciones desplegables y preferencias ---- */
+.desplegable { padding: 0; }
+.desplegable > summary { list-style: none; display: flex; align-items: center; gap: 12px; padding: 14px 16px; cursor: pointer; }
+.desplegable > summary::-webkit-details-marker { display: none; }
+.desplegable > summary > span { display: flex; flex-direction: column; flex: 1; }
+.desplegable > summary::after { content: '›'; font-size: 1.5rem; color: var(--gris); transition: transform .2s; }
+.desplegable[open] > summary::after { transform: rotate(90deg); }
+.desplegable > form { padding: 0 16px 16px; }
+.titulo-pref { font-size: .95rem; margin: 14px 0 6px; color: var(--gris); }

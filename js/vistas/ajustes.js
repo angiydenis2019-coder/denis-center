@@ -24,33 +24,6 @@ export async function vistaAjustes(app) {
     ${faltaSql && esAdmin ? `<div class="tarjeta banner aviso-sql">${ic('alerta', 18)} Falta ejecutar <b>sql/02_configuracion.sql</b> en Supabase
       (SQL Editor). Hasta entonces, los datos del negocio y la lista de usuarios pueden no funcionar.</div>` : ''}
 
-    <h2>Apariencia</h2>
-    <div class="tarjeta">
-      <div class="temas" role="group" aria-label="Estilo de la app">
-        ${TEMAS.map((t) => `<button type="button" class="tema-op" data-tema-op="${t.id}" aria-pressed="${t.id === temaActual()}">
-          <span class="mini-pantalla mp-${t.id}" aria-hidden="true"><i></i><i></i><i></i></span><b>${t.nombre}</b></button>`).join('')}
-      </div>
-      <p class="sub" style="margin-bottom:0">Se guarda en este celular. También podés cambiarlo con el botón de la paleta, arriba.</p>
-    </div>
-
-    <h2>Dictado por voz</h2>
-    <div class="tarjeta">
-      ${dictadoDisponible ? `<label class="fila" style="margin:0; cursor:pointer">
-        <span>Mostrar el micrófono en los campos para dictar</span>
-        <input type="checkbox" id="chk-dictado" style="width:24px;height:24px" ${dictadoActivo() ? 'checked' : ''}>
-      </label>
-      <p class="sub" style="margin-bottom:0">Tocás el micrófono, hablás y se escribe solo. Necesita señal; sin señal usá el micrófono del teclado del celular.</p>`
-      : '<p style="margin:0">Este navegador no permite dictar desde la app. Podés usar el micrófono del teclado del celular.</p>'}
-    </div>
-
-    <h2>Modo sin señal</h2>
-    <div class="tarjeta">
-      <p style="margin-top:0">La app guarda una copia de tus datos en este celular. Sin señal podés buscar, ver fichas y cargar trabajos, pagos y fotos: se suben solos cuando vuelve la señal.</p>
-      <div class="dato"><b>Copia local</b> <span id="sync-fecha">${estadoSync().actualizado ? new Date(estadoSync().actualizado).toLocaleString('es-AR') : 'todavía no se descargó'}</span></div>
-      <div class="dato"><b>Sin subir</b> ${estadoSync().pendientes} cambio(s)</div>
-      <div class="botones"><button id="btn-sync" class="btn secundario" type="button">${ic('actualizar', 18)} Actualizar ahora</button></div>
-    </div>
-
     <h2>Mi perfil</h2>
     <form id="f-perfil" class="tarjeta">
       <div class="dato"><b>Correo</b> ${esc(user.email)}</div>
@@ -61,13 +34,6 @@ export async function vistaAjustes(app) {
         <a class="btn secundario" href="#/cambiar-clave">Cambiar contraseña</a></div>
       <p class="msg sub" hidden></p>
     </form>
-
-    ${superadmin ? `<h2>Administración</h2>
-    <div class="tarjeta">
-      ${multi ? `<a class="enlace-fila" href="#/admin"><span class="con-ic">${ic('escudo')} Técnicos y cuentas</span> <span>›</span></a>
-      <p class="sub" style="margin-bottom:0">Crear cuentas para otros técnicos, suspenderlas o darles una contraseña nueva.</p>`
-      : `<div class="banner aviso-sql">${ic('alerta', 18)} Para sumar otros técnicos, ejecutá <b>sql/08_multinegocio.sql</b> en Supabase.</div>`}
-    </div>` : ''}
 
     ${esAdmin ? `
     <h2>Logo de tu negocio</h2>
@@ -84,9 +50,10 @@ export async function vistaAjustes(app) {
       : `<p style="margin:0">Disponible después de ejecutar <b>sql/08_multinegocio.sql</b>.</p>`}
     </div>
 
-    <h2>Datos del negocio</h2>
-    <form id="f-negocio" class="tarjeta">
-      <p class="sub" style="margin-top:0">Se usan en los mensajes de WhatsApp y en el comprobante.</p>
+    <details class="tarjeta desplegable">
+      <summary>${ic('tarjeta', 20)} <span><b>Datos del negocio y para transferencias</b><span class="sub">Nombre, teléfono, dirección, alias y texto del comprobante</span></span></summary>
+    <form id="f-negocio">
+      <p class="sub" style="margin-top:12px">Se usan en los mensajes de WhatsApp, en el comprobante y en los presupuestos.</p>
       <label for="ng-nombre">Nombre del negocio</label>
       <input id="ng-nombre" name="nombre" required value="${esc(n.nombre)}">
       <label for="ng-tecnico">Técnico / responsable</label>
@@ -114,6 +81,7 @@ export async function vistaAjustes(app) {
       <div class="botones"><button class="btn" type="submit">Guardar datos</button></div>
       <p class="msg sub" hidden></p>
     </form>
+    </details>
 
     <h2>Herramientas</h2>
     <div class="tarjeta">
@@ -122,6 +90,15 @@ export async function vistaAjustes(app) {
       <a class="enlace-fila" href="#/precios"><span class="con-ic">${ic('precio')} Lista de precios</span> <span>›</span></a>
       <a class="enlace-fila" href="#/resumen"><span class="con-ic">${ic('grafico')} Resumen de ganancias</span> <span>›</span></a>
     </div>
+
+    ` : ''}
+
+    ${superadmin ? `<h2>Administración</h2>
+    <div class="tarjeta">
+      ${multi ? `<a class="enlace-fila" href="#/admin"><span class="con-ic">${ic('escudo')} Técnicos y cuentas</span> <span>›</span></a>
+      <p class="sub" style="margin-bottom:0">Crear cuentas para otros técnicos, suspenderlas o darles una contraseña nueva.</p>`
+      : `<div class="banner aviso-sql">${ic('alerta', 18)} Para sumar otros técnicos, ejecutá <b>sql/08_multinegocio.sql</b> en Supabase.</div>`}
+    </div>` : ''}
 
     ${superadmin ? `<h2>Usuarios y ayudantes</h2>
     <div class="tarjeta">
@@ -138,13 +115,43 @@ export async function vistaAjustes(app) {
       </details>
     </div>` : ''}
 
+    ${esAdmin ? `
     <h2>Copia de seguridad</h2>
     <div class="tarjeta">
       <p style="margin-top:0">Descarga un archivo Excel con clientes, equipos, trabajos, repuestos y pagos. Guardalo en la compu o en Drive de vez en cuando.</p>
       <p class="sub">Las fotos no se incluyen (quedan guardadas en Supabase).</p>
       <div class="botones"><button id="btn-respaldo" class="btn" type="button">${ic('descargar', 18)} Descargar Excel</button></div>
       <p id="respaldo-msg" class="sub" hidden></p>
-    </div>` : ''}
+    </div>
+    ` : ''}
+
+    <h2>Preferencias de la app</h2>
+    <h3 class="titulo-pref">Apariencia</h3>
+    <div class="tarjeta">
+      <div class="temas" role="group" aria-label="Estilo de la app">
+        ${TEMAS.map((t) => `<button type="button" class="tema-op" data-tema-op="${t.id}" aria-pressed="${t.id === temaActual()}">
+          <span class="mini-pantalla mp-${t.id}" aria-hidden="true"><i></i><i></i><i></i></span><b>${t.nombre}</b></button>`).join('')}
+      </div>
+      <p class="sub" style="margin-bottom:0">Se guarda en este celular. También podés cambiarlo con el botón de la paleta, arriba.</p>
+    </div>
+
+    <h3 class="titulo-pref">Dictado por voz</h3>
+    <div class="tarjeta">
+      ${dictadoDisponible ? `<label class="fila" style="margin:0; cursor:pointer">
+        <span>Mostrar el micrófono en los campos para dictar</span>
+        <input type="checkbox" id="chk-dictado" style="width:24px;height:24px" ${dictadoActivo() ? 'checked' : ''}>
+      </label>
+      <p class="sub" style="margin-bottom:0">Tocás el micrófono, hablás y se escribe solo. Necesita señal; sin señal usá el micrófono del teclado del celular.</p>`
+      : '<p style="margin:0">Este navegador no permite dictar desde la app. Podés usar el micrófono del teclado del celular.</p>'}
+    </div>
+
+    <h3 class="titulo-pref">Modo sin señal</h3>
+    <div class="tarjeta">
+      <p style="margin-top:0">La app guarda una copia de tus datos en este celular. Sin señal podés buscar, ver fichas y cargar trabajos, pagos y fotos: se suben solos cuando vuelve la señal.</p>
+      <div class="dato"><b>Copia local</b> <span id="sync-fecha">${estadoSync().actualizado ? new Date(estadoSync().actualizado).toLocaleString('es-AR') : 'todavía no se descargó'}</span></div>
+      <div class="dato"><b>Sin subir</b> ${estadoSync().pendientes} cambio(s)</div>
+      <div class="botones"><button id="btn-sync" class="btn secundario" type="button">${ic('actualizar', 18)} Actualizar ahora</button></div>
+    </div>
 
     <p class="sub version"><a href="#/terminos">Términos y Condiciones y Privacidad</a>${miPerfilTerminos(yo)}<br>DC ${VERSION_APP}</p>
   `;
