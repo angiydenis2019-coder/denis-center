@@ -106,7 +106,7 @@ body {
 .estado-sync.error { background: #fdecea; color: #b0281a; }
 
 /* ---------- Estructura ---------- */
-main { max-width: 760px; margin: 0 auto; padding: 16px 16px 90px; }
+main { max-width: 760px; margin: 0 auto; padding: 16px 16px 8px; }
 h1 { font-family: Montserrat, Inter, sans-serif; font-weight: 800; font-size: 1.5rem; color: var(--azul); margin: 4px 0 16px; letter-spacing: -.2px; }
 h2 { font-size: 1.05rem; font-weight: 700; margin: 24px 0 10px; color: var(--texto); display: flex; align-items: center; gap: 8px; }
 .fila { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
@@ -433,3 +433,9 @@ a.tarjeta.agenda-item { display: flex; }
 .terminos ul { padding-left: 20px; }
 .acepto { align-items: flex-start; gap: 12px; cursor: pointer; font-weight: 500; justify-content: flex-start; }
 .acepto input { width: 24px; height: 24px; flex: none; margin-top: 2px; }
+
+/* ---- Pie fijo con el emblema DC (siempre igual, aunque cada técnico cambie su logo) ---- */
+.pie-dc { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 14px 16px 96px;
+  color: var(--gris); font-size: .82rem; opacity: .9; }
+.pie-dc img { width: 32px; height: auto; background: #fff; border-radius: 6px; padding: 2px; }
+.pie-dc b { font-family: Montserrat, Inter, sans-serif; font-style: italic; font-weight: 800; letter-spacing: -.2px; }
