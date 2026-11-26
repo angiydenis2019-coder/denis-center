@@ -4,14 +4,14 @@
 // Cada vez que cambies archivos de la app, subí el número de versión.
 importScripts('./js/sw-datos.js');
 
-const VERSION = 'denis-center-v22';
+const VERSION = 'denis-center-v23';
 const ARCHIVOS = [
   './', './index.html', './manifest.json', './css/estilos.css',
   './js/app.js', './js/config.js', './js/supabase.js', './js/util.js', './js/fotos.js', './js/negocio.js',
   './js/buscar.js', './js/recordatorios.js', './js/sincronizar.js', './js/sw-datos.js', './js/iconos.js', './js/tema.js', './js/rapidos.js', './js/dictado.js', './js/contactos.js',
   './js/vistas/login.js', './js/vistas/inicio.js', './js/vistas/clientes.js',
   './js/vistas/equipos.js', './js/vistas/trabajos.js', './js/vistas/ajustes.js', './js/vistas/agenda.js',
-  './js/vistas/precios.js', './js/vistas/resumen.js', './js/vistas/presupuestos.js', './js/vistas/papelera.js', './js/vistas/recibo.js', './js/vistas/cuenta.js', './js/vistas/admin.js', './js/vistas/terminos.js', './js/vistas/invitacion.js', './js/terminos.js',
+  './js/vistas/precios.js', './js/vistas/resumen.js', './js/vistas/presupuestos.js', './js/vistas/papelera.js', './js/vistas/recibo.js', './js/vistas/cuenta.js', './js/vistas/admin.js', './js/vistas/terminos.js', './js/vistas/invitacion.js', './js/avisos.js', './js/terminos.js',
   './iconos/icono-192.png', './iconos/icono-512.png', './iconos/icono-maskable-512.png', './iconos/logo.png', './iconos/emblema.png',
 ];
 
@@ -133,4 +133,31 @@ self.addEventListener('message', (e) => {
     e.waitUntil(leerMeta('fallidos').then((f) => e.source?.postMessage({ tipo: 'fallidos', lista: f || [] })));
   }
   if (m.tipo === 'limpiar-fallidos') e.waitUntil(guardarMeta('fallidos', []).then(() => avisarEstado()));
+});
+
+// ----- Avisos (notificaciones) -----
+self.addEventListener('push', (e) => {
+  let d = {};
+  try { d = e.data ? e.data.json() : {}; } catch { d = { cuerpo: e.data?.text() }; }
+  e.waitUntil(self.registration.showNotification(d.titulo || 'DC', {
+    body: d.cuerpo || '',
+    icon: './iconos/icono-192.png',
+    badge: './iconos/icono-192.png',
+    tag: d.etiqueta || 'dc',
+    renotify: true,
+    vibrate: [200, 100, 200],
+    data: { url: d.url || './#/inicio' },
+  }));
+});
+
+self.addEventListener('notificationclick', (e) => {
+  e.notification.close();
+  const destino = new URL(e.notification.data?.url || './#/inicio', self.registration.scope).href;
+  e.waitUntil((async () => {
+    const ventanas = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    for (const v of ventanas) {
+      if (v.url.startsWith(self.registration.scope)) { await v.focus(); return v.navigate(destino); }
+    }
+    return self.clients.openWindow(destino);
+  })());
 });

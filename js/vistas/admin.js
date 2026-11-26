@@ -5,6 +5,7 @@ import { sb } from '../supabase.js';
 import { ic } from '../iconos.js';
 import { esc, fecha, fechaHora, linkWhatsApp, mensajeError } from '../util.js';
 import { CONTACTO_EMAIL } from '../terminos.js';
+import { estadoAvisos, activarAvisos, desactivarAvisos, probarAviso } from '../avisos.js';
 
 const linkApp = () => location.origin + location.pathname;
 
@@ -78,6 +79,8 @@ export async function vistaAdmin(app) {
     </div>
 
     <div id="zona-solicitudes"></div>
+
+    <div class="tarjeta" id="caja-avisos"><p class="vacio">Revisando avisos…</p></div>
 
     <details class="tarjeta" id="det-nuevo">
       <summary><b>${ic('mas', 18)} Cargar técnico a mano</b></summary>
@@ -168,7 +171,58 @@ export async function vistaAdmin(app) {
     await pintarInvitaciones(app, zona);
   });
 
-  await Promise.all([pintarInvitaciones(app, zona), pintarLista(app, zona)]);
+  await Promise.all([pintarInvitaciones(app, zona), pintarLista(app, zona), pintarAvisos(app)]);
+}
+
+const TEXTO_AVISOS = {
+  activos: ['🔔 Avisos activados en este celular', 'Te suena el celular cuando un técnico completa su solicitud.'],
+  apagados: ['🔕 Avisos apagados en este celular', 'Activalos para que te suene el celular cuando un técnico complete su solicitud.'],
+  bloqueados: ['🚫 Avisos bloqueados', 'El navegador tiene bloqueados los avisos de esta app. Habilitalos en Configuración del navegador → Configuración de sitios → Notificaciones, y volvé a esta pantalla.'],
+  'no-soportado': ['Avisos no disponibles', 'Este navegador no permite avisos. Probá con Chrome en Android.'],
+  'instalar-iphone': ['Instalá la app primero', 'En iPhone los avisos funcionan solo con la app instalada: tocá Compartir → Agregar a inicio, abrila desde ahí y volvé a esta pantalla.'],
+};
+
+async function pintarAvisos(app) {
+  const caja = app.querySelector('#caja-avisos');
+  let estado;
+  try { estado = await estadoAvisos(); } catch { estado = 'no-soportado'; }
+  const [titulo, texto] = TEXTO_AVISOS[estado];
+  caja.innerHTML = `
+    <h3 style="margin-top:0">${titulo}</h3>
+    <p class="sub" style="margin-top:0">${texto}</p>
+    <div class="botones">
+      ${estado === 'apagados' ? `<button class="btn" type="button" id="btn-avisos-on">🔔 Activar avisos</button>` : ''}
+      ${estado === 'activos' ? `<button class="btn secundario" type="button" id="btn-avisos-prueba">Probar aviso</button>
+        <button class="btn-texto" type="button" id="btn-avisos-off">Desactivar</button>` : ''}
+    </div>
+    <p class="msg sub" hidden></p>`;
+  const msg = caja.querySelector('.msg');
+  const decir = (t, err) => { msg.hidden = false; msg.textContent = t; msg.classList.toggle('error', !!err); };
+  caja.querySelector('#btn-avisos-on')?.addEventListener('click', async (e) => {
+    const b = e.currentTarget; b.disabled = true;
+    try {
+      await activarAvisos();
+      await pintarAvisos(app);
+      const m = caja.querySelector('.msg'); m.hidden = false; m.textContent = '✔ Listo. Tocá "Probar aviso" para verificar.';
+    } catch (err) {
+      decir(/Registration failed|AbortError|push service/i.test(err.message)
+        ? 'El navegador no pudo activar los avisos. Usá Chrome actualizado y, si tenés ahorro de batería o datos, desactivalo un momento.'
+        : err.message, true);
+      b.disabled = false;
+    }
+  });
+  caja.querySelector('#btn-avisos-prueba')?.addEventListener('click', async (e) => {
+    const b = e.currentTarget; b.disabled = true;
+    try {
+      const n = await probarAviso();
+      decir(n ? '✔ Aviso enviado. Tendría que sonar en unos segundos.' : 'No se encontró este celular. Desactivá y volvé a activar los avisos.', !n);
+    } catch (err) { decir(err.message, true); }
+    b.disabled = false;
+  });
+  caja.querySelector('#btn-avisos-off')?.addEventListener('click', async () => {
+    await desactivarAvisos().catch(() => {});
+    await pintarAvisos(app);
+  });
 }
 
 // Solicitudes completadas (para aprobar) e invitaciones enviadas sin completar

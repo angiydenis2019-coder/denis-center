@@ -78,6 +78,7 @@ export async function vistaInvitacion(app, token) {
       boton.disabled = false; boton.textContent = 'Enviar mis datos';
       return;
     }
+    sb.functions.invoke('avisos', { body: { accion: 'solicitud', token } }).catch(() => {}); // aviso al celular de Denis
     window.scrollTo(0, 0);
     cartel(app, '¡Listo, datos enviados!', 'Denis va a revisar tu solicitud y te va a mandar por WhatsApp el acceso a la app con una contraseña provisoria. Ya podés cerrar esta página.', true);
   });

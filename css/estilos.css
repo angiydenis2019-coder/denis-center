@@ -444,3 +444,10 @@ a.tarjeta.agenda-item { display: flex; }
 .editar-tecnico summary { cursor: pointer; color: var(--acento); font-weight: 600; font-size: .9rem; display: flex; align-items: center; gap: 6px; }
 .editar-tecnico label { display: block; font-size: .85rem; margin-top: 6px; }
 .editar-tecnico input { margin-top: 2px; }
+
+/* ---- Avisos de solicitudes ---- */
+.nav a { position: relative; }
+.globito { position: absolute; top: 2px; left: 50%; margin-left: 6px; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 99px;
+  background: #d93025; color: #fff; font-size: .72rem; font-weight: 700; line-height: 18px; text-align: center; }
+.aviso-solicitudes { display: flex; align-items: center; gap: 8px; text-decoration: none; color: inherit; }
+.aviso-solicitudes span { margin-left: auto; font-size: 1.3rem; }

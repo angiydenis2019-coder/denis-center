@@ -161,3 +161,9 @@ iconos/
 - El técnico completa apellido, nombre, localidad, negocio, correo y celular, y acepta los términos, sin tener cuenta.
 - La solicitud aparece en **Solicitudes para aprobar**: al aprobar se crea la cuenta y se muestra la contraseña provisoria.
 - Instalación: ejecutar `sql/10_datos_tecnico.sql` y `sql/11_invitaciones.sql` en Supabase → SQL Editor.
+
+## Versión 2.3 — Avisos al celular
+- Cuando un técnico completa el formulario de invitación, le suena el celular al superadministrador.
+- En la app: globito rojo en Ajustes y cartel en Inicio con las solicitudes pendientes.
+- Instalación: ejecutar `sql/12_avisos.sql` y crear la función `avisos` (pegar `supabase/functions/avisos/index.ts`,
+  desactivar "Verify JWT"). Después, en Administración → **Activar avisos** en el celular donde se quiere recibir.

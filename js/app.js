@@ -117,6 +117,20 @@ async function navegar() {
     app.innerHTML = `<div class="tarjeta"><p class="error">Ocurrió un error: ${esc(err.message || err)}</p></div>`;
   }
   window.scrollTo(0, 0);
+  if (esSuperadmin()) avisoSolicitudes(ruta);
+}
+
+// Superadministrador: cuántas solicitudes de técnicos esperan aprobación
+async function avisoSolicitudes(ruta) {
+  if (!navigator.onLine) return;
+  const { count, error } = await sb.from('invitaciones').select('id', { count: 'exact', head: true }).eq('estado', 'completada');
+  if (error) return;
+  const enlace = nav.querySelector('a[data-ruta=ajustes]');
+  enlace?.querySelector('.globito')?.remove();
+  if (count > 0) enlace?.insertAdjacentHTML('beforeend', `<span class="globito" aria-label="${count} solicitudes">${count}</span>`);
+  if (ruta === 'inicio' && count > 0 && !app.querySelector('.aviso-solicitudes')) {
+    app.insertAdjacentHTML('afterbegin', `<a class="tarjeta banner aviso-solicitudes" href="#/admin">🔔 <b>${count === 1 ? 'Tenés 1 solicitud' : `Tenés ${count} solicitudes`}</b> de técnico para aprobar <span>›</span></a>`);
+  }
 }
 
 aplicarTema(temaActual());
