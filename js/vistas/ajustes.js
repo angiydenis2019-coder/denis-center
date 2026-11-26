@@ -153,7 +153,7 @@ export async function vistaAjustes(app) {
       <div class="botones"><button id="btn-sync" class="btn secundario" type="button">${ic('actualizar', 18)} Actualizar ahora</button></div>
     </div>
 
-    <p class="sub version"><a href="#/terminos">Términos y Condiciones y Privacidad</a>${miPerfilTerminos(yo)}<br>DC ${VERSION_APP}</p>
+    <p class="sub version"><a href="#/terminos">Términos, condiciones y privacidad</a>${miPerfilTerminos(yo)}<br>DC ${VERSION_APP}</p>
   `;
 
   app.querySelectorAll('[data-tema-op]').forEach((b) => b.addEventListener('click', () => {
