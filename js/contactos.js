@@ -51,13 +51,15 @@ export function datosDeVcard(vcf) {
 export function datosDeTexto(texto) {
   const t = String(texto ?? '');
   if (/BEGIN:VCARD/i.test(t)) return datosDeVcard(t);
-  const numero = (t.match(/(\+?\d[\d\s\-().]{7,}\d)/) || [])[1] || '';
-  const resto = t.replace(numero, '').replace(/[^\p{L}\s']/gu, ' ').trim();
+  const sinLinks = t.replace(/https?:\/\/\S+/g, ' ');
+  const numero = (sinLinks.match(/(\+?\d[\d\s\-().]{7,}\d)/) || [])[1] || '';
+  const resto = sinLinks.replace(numero, '').replace(/[^\p{L}\s']/gu, ' ').trim();
   const nombreProbable = resto.split(/\s+/).length <= 4 ? resto : '';
   return { ...separarNombre(nombreProbable), telefono: normalizarTelefono(numero) };
 }
 
 // Lo que llegó por "Compartir" (lo guarda el service worker)
+let ultimoCompartido = null;
 export async function leerCompartido() {
   try {
     const cache = await caches.open('dc-compartido');
@@ -65,7 +67,15 @@ export async function leerCompartido() {
     if (!resp) return null;
     await cache.delete('./compartido');
     const d = await resp.json();
+    ultimoCompartido = [d.title, d.text, d.url].filter(Boolean).join(' ');
     if (d.vcard) return datosDeVcard(d.vcard);
     return datosDeTexto([d.title, d.text, d.url].filter(Boolean).join(' '));
   } catch { return null; }
+}
+
+// Si lo compartido traía un link de mapa (ubicación), lo devuelve
+export async function leerUbicacionCompartida() {
+  const t = ultimoCompartido || '';
+  const m = t.match(/https?:\/\/(maps\.app\.goo\.gl|goo\.gl\/maps|(www\.)?google\.[a-z.]+\/maps|maps\.google\.[a-z.]+)\S*/i);
+  return m ? m[0] : null;
 }

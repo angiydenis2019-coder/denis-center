@@ -1,11 +1,11 @@
 import { botonEliminar, activarEliminar } from './papelera.js';
-import { agendaDisponible, elegirDeAgenda, leerPortapapeles, leerCompartido, normalizarTelefono } from '../contactos.js';
+import { agendaDisponible, elegirDeAgenda, leerPortapapeles, leerCompartido, leerUbicacionCompartida, normalizarTelefono } from '../contactos.js';
 import { ic } from '../iconos.js';
 import { sb } from '../supabase.js';
 import { negocio, tieneAlias, mensajeAlias, activarCopiarAlias } from '../negocio.js';
 import { esc, pesos, nombreCompleto, linkWhatsApp, datosFormulario, mensajeError, descEquipo } from '../util.js';
 import { tarjetaTrabajo } from './equipos.js';
-import { botonesRapidos, activarRapidos } from '../rapidos.js';
+import { botonesRapidos, activarRapidos, extraerUbicacion, ubicacionActual, linkMaps } from '../rapidos.js';
 import { montarPresupuestosCliente } from './presupuestos.js';
 import { cargarIndice, filtrar, tarjetaCliente } from '../buscar.js';
 
@@ -61,6 +61,7 @@ export async function vistaClienteFicha(app, id) {
       ${c.dni ? `<div class="dato"><b>DNI</b> ${esc(c.dni)}</div>` : ''}
       ${c.telefono ? `<div class="dato"><b>Teléfono</b> ${esc(c.telefono)}</div>` : ''}
       ${c.direccion ? `<div class="dato"><b>Dirección</b> ${esc(c.direccion)}</div>` : ''}
+      ${c.ubicacion ? `<div class="dato"><b>Ubicación</b> <a href="${esc(c.ubicacion)}" target="_blank" rel="noopener">${ic('mapa', 16)} Ver en el mapa</a></div>` : ''}
       ${c.notas ? `<div class="dato"><b>Notas</b> ${esc(c.notas)}</div>` : ''}
       ${deuda > 0 ? `<div class="dato"><b>Saldo</b> <strong style="color:var(--rojo)">Debe ${pesos(deuda)}</strong></div>` : ''}
     </div>
@@ -73,7 +74,7 @@ export async function vistaClienteFicha(app, id) {
       ${c.telefono ? `<a class="btn alias" href="${esc(linkWhatsApp(c.telefono, mensajeAlias(c.nombre, deuda)))}" target="_blank" rel="noopener">${ic('tarjeta', 18)} Pasar alias${deuda > 0 ? ' (' + pesos(deuda) + ')' : ''}</a>` : ''}
       <button class="btn secundario" type="button" data-copiar-alias>${ic('copiar', 18)} Copiar alias</button>
     </div>` : ''}
-    <div id="rapidos-cli">${botonesRapidos({ nombre: c.nombre, telefono: c.telefono, direccion: c.direccion })}</div>
+    <div id="rapidos-cli">${botonesRapidos({ nombre: c.nombre, telefono: c.telefono, direccion: c.direccion, ubicacion: c.ubicacion })}</div>
     <div class="botones acciones-cli">
       <a class="btn" href="#/trabajo-nuevo/${esc(c.id)}">${ic('mas', 18)} Trabajo / turno</a>
       <a class="btn secundario" href="#/presupuesto-nuevo/${esc(c.id)}">${ic('documento', 18)} Presupuesto</a>
@@ -105,7 +106,7 @@ export async function vistaClienteFicha(app, id) {
 // FORMULARIO: nuevo cliente / editar cliente
 // ---------------------------------------------------------------------
 export async function vistaClienteFormulario(app, id, compartido = false) {
-  let c = { nombre: '', apellido: '', dni: '', telefono: '', direccion: '', notas: '' };
+  let c = { nombre: '', apellido: '', dni: '', telefono: '', direccion: '', ubicacion: '', notas: '' };
   if (id) {
     const { data, error } = await sb.from('clientes').select('*').eq('id', id).maybeSingle();
     if (error) throw error;
@@ -134,8 +135,16 @@ export async function vistaClienteFormulario(app, id, compartido = false) {
       <label for="telefono">Teléfono <span class="ayuda">— código de área + número, sin 0 ni 15 (ej: 3704 123456)</span></label>
       <input id="telefono" name="telefono" type="tel" value="${v('telefono')}">
       <p id="tel-duplicado" class="aviso-dup" hidden></p>
-      <label for="direccion">Dirección <span class="ayuda">— con la localidad, o pegá el link de ubicación que te manden por WhatsApp</span></label>
+      <label for="direccion">Dirección <span class="ayuda">— calle, número y localidad</span></label>
       <input id="direccion" name="direccion" value="${v('direccion')}">
+      <label for="ubicacion">Ubicación en el mapa <span class="ayuda">— el link de Google Maps que te mandaron por WhatsApp, o tu ubicación si estás en la casa</span></label>
+      <input id="ubicacion" name="ubicacion" value="${v('ubicacion')}" placeholder="https://maps.app.goo.gl/…" inputmode="url" data-sin-dictado autocomplete="off">
+      <div class="botones ubic-botones">
+        ${navigator.clipboard?.readText ? `<button class="btn secundario" type="button" id="btn-pegar-ubic">${ic('copiar', 18)} Pegar link</button>` : ''}
+        <button class="btn secundario" type="button" id="btn-aca">${ic('mapa', 18)} Estoy acá</button>
+        <a class="btn secundario" id="btn-ver-ubic" target="_blank" rel="noopener" href="#" hidden>Ver</a>
+      </div>
+      <p class="sub" id="ubic-msg" style="margin:0" hidden></p>
       <label for="notas">Notas</label>
       <textarea id="notas" name="notas">${v('notas')}</textarea>
       <div class="botones">
@@ -180,6 +189,38 @@ export async function vistaClienteFormulario(app, id, compartido = false) {
     if (completar(d)) avisar('✔ Datos traídos desde WhatsApp. Revisalos antes de guardar.');
   }
 
+  // Ubicación en el mapa
+  const ubic = form.ubicacion;
+  const verUbic = app.querySelector('#btn-ver-ubic');
+  const ubicMsg = app.querySelector('#ubic-msg');
+  const decir = (t, mal = false) => { ubicMsg.hidden = false; ubicMsg.textContent = t; ubicMsg.classList.toggle('error', mal); };
+  const refrescarVer = () => {
+    const link = ubic.value.trim() && linkMaps('', ubic.value);
+    verUbic.hidden = !link;
+    if (link) verUbic.href = ubic.value.trim();
+  };
+  ubic.addEventListener('input', refrescarVer);
+  ubic.addEventListener('change', () => { const l = extraerUbicacion(ubic.value); if (l) ubic.value = l; refrescarVer(); });
+  refrescarVer();
+  app.querySelector('#btn-pegar-ubic')?.addEventListener('click', async () => {
+    try {
+      const l = extraerUbicacion(await navigator.clipboard.readText());
+      if (l) { ubic.value = l; refrescarVer(); decir('✔ Ubicación pegada. Tocá "Ver" para comprobarla.'); }
+      else decir('No encontré una ubicación en lo que copiaste. En WhatsApp abrí la ubicación, tocá Compartir y elegí "Copiar".', true);
+    } catch { decir('Permití el acceso al portapapeles para pegar la ubicación.', true); }
+  });
+  app.querySelector('#btn-aca').addEventListener('click', async (ev) => {
+    const b = ev.currentTarget; b.disabled = true; decir('Buscando tu ubicación…');
+    try { ubic.value = await ubicacionActual(); refrescarVer(); decir('✔ Ubicación guardada en el formulario. Acordate de tocar Guardar.'); }
+    catch (err) { decir(err.message, true); }
+    b.disabled = false;
+  });
+  // Si llegó compartido un link de mapa (desde WhatsApp o Maps), va a Ubicación
+  if (compartido && !ubic.value) {
+    const l = await leerUbicacionCompartida();
+    if (l) { ubic.value = l; refrescarVer(); }
+  }
+
   // Aviso si el teléfono ya es de otro cliente
   const dup = app.querySelector('#tel-duplicado');
   let otros = null;
@@ -207,10 +248,16 @@ export async function vistaClienteFormulario(app, id, compartido = false) {
     const boton = form.querySelector('button[type=submit]');
     boton.disabled = true; error.hidden = true;
 
+    if (datos.ubicacion) datos.ubicacion = extraerUbicacion(datos.ubicacion) || datos.ubicacion;
     const nuevoId = id || crypto.randomUUID();
-    const { error: err } = id
-      ? await sb.from('clientes').update(datos).eq('id', id)
-      : await sb.from('clientes').insert({ id: nuevoId, ...datos });
+    const guardar = (d) => (id ? sb.from('clientes').update(d).eq('id', id) : sb.from('clientes').insert({ id: nuevoId, ...d }));
+    let { error: err } = await guardar(datos);
+    if (err && /ubicacion/i.test(err.message || '')) {
+      // Falta sql/07_ubicacion.sql: se guarda el link junto a la dirección
+      const { ubicacion, ...resto } = datos;
+      if (ubicacion) resto.direccion = [resto.direccion, ubicacion].filter(Boolean).join(' ');
+      ({ error: err } = await guardar(resto));
+    }
 
     boton.disabled = false;
     if (err) { error.textContent = mensajeError(err); error.hidden = false; return; }

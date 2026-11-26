@@ -410,3 +410,5 @@ a.tarjeta.agenda-item { display: flex; }
 .aviso-dup a { color: inherit; font-weight: 700; }
 .traer .botones { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; }
 .traer .btn { padding: 0 10px; }
+.ubic-botones { display: grid; grid-template-columns: 1fr 1fr auto; gap: 8px; margin: 8px 0 4px; }
+.ubic-botones .btn { padding: 0 10px; min-height: 44px; font-size: .92rem; }

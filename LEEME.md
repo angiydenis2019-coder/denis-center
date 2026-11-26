@@ -126,3 +126,9 @@ iconos/
 - Nuevo cliente: "Mis contactos" (agenda del celular) y "Pegar número" (limpia +54 9, espacios y guiones)
 - Denis Center aparece en "Compartir" de Android: compartir un contacto desde WhatsApp abre Nuevo cliente completado
 - Aviso si el teléfono ya pertenece a otro cliente
+
+## Versión 1.6 — Ubicación del cliente
+> Requiere ejecutar `sql/07_ubicacion.sql` en Supabase.
+- Campo "Ubicación en el mapa": pegar el link de Google Maps de WhatsApp o guardar el GPS actual ("Estoy acá")
+- "Cómo llegar" usa la ubicación guardada; en la ficha, "Ver en el mapa"
+- Compartir una ubicación de Maps hacia Denis Center la carga en Nuevo cliente

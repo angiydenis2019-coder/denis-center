@@ -23,8 +23,9 @@ export async function vistaTrabajoDetalle(app, id) {
   const t = tr.data;
   if (!t) { app.innerHTML = '<p class="vacio">Trabajo no encontrado.</p>'; return; }
   const repuestos = rep.data, pagos = pag.data;
-  const { data: cliDir } = await sb.from('clientes').select('direccion').eq('id', t.cliente_id).maybeSingle();
+  const { data: cliDir } = await sb.from('clientes').select('*').eq('id', t.cliente_id).maybeSingle();
   const direccionCliente = cliDir?.direccion;
+  const ubicacionCliente = cliDir?.ubicacion;
   const precios = await cargarPrecios();
   const cliente = { nombre: t.cliente_nombre, apellido: t.cliente_apellido };
 
@@ -51,7 +52,7 @@ export async function vistaTrabajoDetalle(app, id) {
       ${t.notas ? `<div class="dato"><b>Notas</b> ${esc(t.notas)}</div>` : ''}
     </div>
 
-    ${t.estado === 'agendado' ? `<div id="rapidos-tr">${botonesRapidos({ nombre: t.cliente_nombre, telefono: t.cliente_telefono, direccion: direccionCliente })}</div>` : ''}
+    ${t.estado === 'agendado' ? `<div id="rapidos-tr">${botonesRapidos({ nombre: t.cliente_nombre, telefono: t.cliente_telefono, direccion: direccionCliente, ubicacion: ubicacionCliente })}</div>` : ''}
     <div class="botones">
       ${t.estado === 'agendado' ? `<a class="btn" href="#/trabajo-editar/${esc(t.id)}/completar">${ic('check', 18)} Completar trabajo</a>` : ''}
       ${wa ? `<a class="btn whatsapp" href="${esc(wa)}" target="_blank" rel="noopener">${ic('chat', 18)} ${t.estado === 'realizado' ? 'Mensaje' : 'Confirmar turno'}</a>` : ''}
