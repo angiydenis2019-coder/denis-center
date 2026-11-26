@@ -4,6 +4,7 @@
 import { sb } from '../supabase.js';
 import { ic } from '../iconos.js';
 import { esc, fecha, fechaHora, linkWhatsApp, mensajeError } from '../util.js';
+import { CONTACTO_EMAIL } from '../terminos.js';
 
 const linkApp = () => location.origin + location.pathname;
 
@@ -13,7 +14,7 @@ function mensajeBienvenida({ nombre, email, clave }) {
     + `2) Entrá con:\n   Correo: ${email}\n   Contraseña provisoria: *${clave}*\n`
     + `3) La app te va a pedir que elijas tu propia contraseña.\n`
     + `4) En el menú del navegador tocá *Instalar app* (o *Agregar a pantalla principal*).\n\n`
-    + `Después, en Ajustes, cargá el nombre de tu negocio, tu logo y tu alias. ¡Cualquier duda me avisás!`;
+    + `Después, en Ajustes, cargá el nombre de tu negocio, tu logo y tu alias.\n\nConsultas: ${CONTACTO_EMAIL}`;
 }
 
 // Llama a la función "admin-usuarios" de Supabase y devuelve el mensaje de error legible

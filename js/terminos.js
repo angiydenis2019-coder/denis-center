@@ -3,7 +3,7 @@
 // vuelve a pedir que acepte la versión nueva.
 export const VERSION_TERMINOS = '1.0';
 export const VIGENCIA_TERMINOS = '26 de noviembre de 2026';
-export const CONTACTO_EMAIL = 'angiydenis2019@gmail.com';
+export const CONTACTO_EMAIL = 'deniscenter2026@gmail.com';
 
 export const TEXTO_TERMINOS = `
 <h2>Términos y Condiciones de Uso y Política de Privacidad de DC</h2>
