@@ -11,6 +11,7 @@ import { vistaPrecios } from './vistas/precios.js';
 import { vistaResumen } from './vistas/resumen.js';
 import { vistaPresupuestos, vistaPresupuestoDetalle, vistaPresupuestoFormulario } from './vistas/presupuestos.js';
 import { vistaPresupuestoDoc } from './vistas/presupuesto-doc.js';
+import { vistaGestion } from './vistas/gestion.js';
 import { cargarNegocio, negocio, negocioSuspendido, debeCambiarClave, esSuperadmin, logoNegocio, olvidarNegocio } from './negocio.js';
 import { vistaSuspendida, vistaCambiarClave } from './vistas/cuenta.js';
 import { vistaAdmin } from './vistas/admin.js';
@@ -61,6 +62,7 @@ const rutas = {
   'agenda':         () => vistaAgenda(app),
   'precios':        () => vistaPrecios(app),
   'resumen':        () => vistaResumen(app),
+  'gestion':        () => vistaGestion(app),
   'presupuestos':   () => vistaPresupuestos(app),
   'papelera':       () => vistaPapelera(app),
   'recibo':         (id) => vistaRecibo(app, id),
@@ -118,7 +120,7 @@ async function navegar() {
   if (ruta === 'admin' && !esSuperadmin()) ruta = 'inicio';
   nav.querySelectorAll('a').forEach((a) => {
     const r = a.dataset.ruta;
-    a.classList.toggle('activo', r === ruta || (r === 'clientes' && /^(cliente|equipo|trabajo|presupuesto-|presupuesto$|recibo)/.test(ruta)) || (r === 'ajustes' && /^(precios|resumen|presupuestos|papelera|admin|cambiar-clave|terminos)/.test(ruta)));
+    a.classList.toggle('activo', r === ruta || (r === 'clientes' && /^(cliente|equipo|trabajo|recibo)/.test(ruta)) || (r === 'gestion' && /^(presupuesto|precios|resumen|papelera)/.test(ruta)) || (r === 'ajustes' && /^(admin|cambiar-clave|terminos)/.test(ruta)));
   });
 
   fab.hidden = !['inicio', 'agenda', 'clientes', 'cliente', 'equipo'].includes(ruta);

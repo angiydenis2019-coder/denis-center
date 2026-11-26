@@ -34,7 +34,7 @@ export async function vistaPapelera(app) {
   const seccion = (titulo, filas) => `<h2>${titulo}</h2>${filas.length ? `<div class="tarjeta">${filas.join('')}</div>` : '<p class="vacio">Nada eliminado.</p>'}`;
 
   app.innerHTML = `
-    <p class="miga"><a href="#/ajustes">← Ajustes</a></p>
+    <p class="miga"><a href="#/gestion">← Gestión</a></p>
     <h1>Papelera</h1>
     <p class="sub">Lo que eliminás queda acá. Tocá <b>Recuperar</b> para que vuelva a aparecer.</p>
     ${seccion('Clientes', (cli.data || []).map((c) => fila('clientes', c.id, esc(nombreCompleto(c)), c.dni ? 'DNI ' + esc(c.dni) : 'Cliente', c.actualizado_en)))}

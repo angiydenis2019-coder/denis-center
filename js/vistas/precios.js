@@ -31,7 +31,7 @@ export async function vistaPrecios(app) {
   const { error: errTabla } = await sb.from('precios').select('id', { head: true, count: 'exact' });
 
   app.innerHTML = `
-    <p class="miga"><a href="#/ajustes">← Ajustes</a></p>
+    <p class="miga"><a href="#/gestion">← Gestión</a></p>
     <h1>Lista de precios</h1>
     ${errTabla ? `<div class="tarjeta banner aviso-sql">${ic('alerta', 18)} Falta ejecutar <b>sql/03_herramientas.sql</b> en Supabase.</div>` : ''}
     <p class="sub">Guardá tus repuestos y trabajos más comunes. Al cargar un trabajo, los elegís de la lista y el precio se completa solo.</p>

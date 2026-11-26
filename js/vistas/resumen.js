@@ -69,7 +69,7 @@ export async function vistaResumen(app) {
     </div>`).join('') : '<p class="vacio">Sin datos este mes.</p>';
 
   app.innerHTML = `
-    <p class="miga"><a href="#/ajustes">← Ajustes</a></p>
+    <p class="miga"><a href="#/gestion">← Gestión</a></p>
     <h1>Resumen de ganancias</h1>
     <div class="fila agenda-nav">
       <button class="btn secundario" data-mover="-1" aria-label="Mes anterior">‹</button>
