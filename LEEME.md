@@ -132,3 +132,19 @@ iconos/
 - Campo "Ubicación en el mapa": pegar el link de Google Maps de WhatsApp o guardar el GPS actual ("Estoy acá")
 - "Cómo llegar" usa la ubicación guardada; en la ficha, "Ver en el mapa"
 - Compartir una ubicación de Maps hacia Denis Center la carga en Nuevo cliente
+
+## Versión 2.0 — DC multi-negocio
+- La app pasa a llamarse **DC** (ícono nuevo con la D, la C y el copo de nieve).
+- Cada técnico tiene su **negocio**: sus clientes, trabajos, fotos y presupuestos son solo suyos.
+- El primer administrador es el **superadministrador**: en Ajustes → Administración crea cuentas
+  para otros técnicos (contraseña provisoria), las suspende/reactiva y les da contraseña nueva.
+  Solo ve cantidades (clientes, trabajos, fotos), no los datos de cada técnico.
+- Cada técnico carga su **logo** y los datos de su negocio en Ajustes; salen en el encabezado y en el comprobante.
+- La primera vez que un técnico entra, la app le pide elegir su propia contraseña.
+
+### Instalación
+1. Descargar la copia de seguridad en Excel (Ajustes → Copia de seguridad).
+2. Ejecutar `sql/08_multinegocio.sql` en Supabase → SQL Editor.
+3. Supabase → Edge Functions → Deploy a new function → Via Editor, nombre `admin-usuarios`,
+   pegar `supabase/functions/admin-usuarios/index.ts`, desactivar **Verify JWT** (la función
+   verifica sola que sea el superadministrador) y Deploy.

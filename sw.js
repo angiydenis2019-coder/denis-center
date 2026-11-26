@@ -4,15 +4,15 @@
 // Cada vez que cambies archivos de la app, subí el número de versión.
 importScripts('./js/sw-datos.js');
 
-const VERSION = 'denis-center-v16';
+const VERSION = 'denis-center-v17';
 const ARCHIVOS = [
   './', './index.html', './manifest.json', './css/estilos.css',
   './js/app.js', './js/config.js', './js/supabase.js', './js/util.js', './js/fotos.js', './js/negocio.js',
   './js/buscar.js', './js/recordatorios.js', './js/sincronizar.js', './js/sw-datos.js', './js/iconos.js', './js/tema.js', './js/rapidos.js', './js/dictado.js', './js/contactos.js',
   './js/vistas/login.js', './js/vistas/inicio.js', './js/vistas/clientes.js',
   './js/vistas/equipos.js', './js/vistas/trabajos.js', './js/vistas/ajustes.js', './js/vistas/agenda.js',
-  './js/vistas/precios.js', './js/vistas/resumen.js', './js/vistas/presupuestos.js', './js/vistas/papelera.js', './js/vistas/recibo.js',
-  './iconos/icono-192.png', './iconos/icono-512.png', './iconos/icono-maskable-512.png', './iconos/logo.png',
+  './js/vistas/precios.js', './js/vistas/resumen.js', './js/vistas/presupuestos.js', './js/vistas/papelera.js', './js/vistas/recibo.js', './js/vistas/cuenta.js', './js/vistas/admin.js',
+  './iconos/icono-192.png', './iconos/icono-512.png', './iconos/icono-maskable-512.png', './iconos/logo.png', './iconos/emblema.png',
 ];
 
 self.addEventListener('install', (e) => {
@@ -22,7 +22,7 @@ self.addEventListener('install', (e) => {
 
 self.addEventListener('activate', (e) => {
   e.waitUntil(
-    caches.keys().then((claves) => Promise.all(claves.filter((k) => k !== VERSION && k !== 'dc-compartido').map((k) => caches.delete(k))))
+    caches.keys().then((claves) => Promise.all(claves.filter((k) => k !== VERSION && k !== 'dc-compartido' && k !== 'dc-logos').map((k) => caches.delete(k))))
   );
   self.clients.claim();
 });
@@ -60,6 +60,18 @@ self.addEventListener('fetch', (e) => {
   if (url.hostname.endsWith('supabase.co')) {
     const esRest = url.pathname.startsWith('/rest/v1/');
     const esSubidaFoto = url.pathname.startsWith('/storage/v1/object/fotos/') && req.method === 'POST';
+
+    // Panel del administrador: siempre directo a internet (nunca a la cola)
+    if (url.pathname.includes('/rpc/admin_')) return;
+
+    // Logos de los negocios: se guardan para verlos también sin señal
+    if (url.pathname.startsWith('/storage/v1/object/public/logos/') && req.method === 'GET') {
+      e.respondWith(fetch(req).then((resp) => {
+        if (resp.ok) { const copia = resp.clone(); caches.open('dc-logos').then((c) => c.put(req, copia)); }
+        return resp;
+      }).catch(() => caches.open('dc-logos').then((c) => c.match(req)).then((r) => r || Response.error())));
+      return;
+    }
 
     // Lecturas: primero la red; si no hay señal, la copia del celular
     if (esRest && (req.method === 'GET' || req.method === 'HEAD')) {

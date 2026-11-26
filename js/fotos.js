@@ -2,6 +2,7 @@ import { ic } from './iconos.js';
 // Fotos: comprimir en el celular, subir a Supabase Storage y mostrar en galería
 import { sb } from './supabase.js';
 import { esc, mensajeError } from './util.js';
+import { carpetaNegocio } from './negocio.js';
 
 const BUCKET = 'fotos';
 const LADO_MAX = 1600;   // px del lado más largo
@@ -32,7 +33,7 @@ export async function comprimir(archivo) {
 async function subir({ trabajoId, equipoId, etiqueta, archivo }) {
   const blob = await comprimir(archivo);
   const id = crypto.randomUUID();
-  const ruta = `${equipoId || 'sin-equipo'}/${trabajoId || 'equipo'}/${id}.jpg`;
+  const ruta = `${carpetaNegocio()}${equipoId || 'sin-equipo'}/${trabajoId || 'equipo'}/${id}.jpg`;
   const { error: e1 } = await sb.storage.from(BUCKET).upload(ruta, blob, { contentType: 'image/jpeg', upsert: false });
   if (e1) throw e1;
   const { error: e2 } = await sb.from('fotos').insert({

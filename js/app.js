@@ -1,4 +1,4 @@
-// Denis Center 1.0 — arranque, sesión y navegación entre pantallas
+// DC — arranque, sesión y navegación entre pantallas
 import { sb, configurado } from './supabase.js';
 import { vistaLogin } from './vistas/login.js';
 import { vistaInicio } from './vistas/inicio.js';
@@ -10,7 +10,9 @@ import { vistaAgenda } from './vistas/agenda.js';
 import { vistaPrecios } from './vistas/precios.js';
 import { vistaResumen } from './vistas/resumen.js';
 import { vistaPresupuestos, vistaPresupuestoDetalle, vistaPresupuestoFormulario } from './vistas/presupuestos.js';
-import { cargarNegocio } from './negocio.js';
+import { cargarNegocio, negocio, negocioSuspendido, debeCambiarClave, esSuperadmin, logoNegocio, olvidarNegocio } from './negocio.js';
+import { vistaSuspendida, vistaCambiarClave } from './vistas/cuenta.js';
+import { vistaAdmin } from './vistas/admin.js';
 import { iniciarSincronizacion, prepararSalida, pedirSincronizacion } from './sincronizar.js';
 import { esc } from './util.js';
 import { siguienteTema, temaActual, aplicarTema } from './tema.js';
@@ -24,7 +26,7 @@ const btnSalir = document.getElementById('btn-salir');
 const btnTema = document.getElementById('btn-tema');
 const fab = document.getElementById('fab');
 let sesion = null;
-let negocioCargado = false;
+let negocioCargado = null; // promesa de carga de los datos del negocio
 
 // Rutas: #/nombre/param1/param2 (ver tabla abajo)
 const rutas = {
@@ -45,6 +47,8 @@ const rutas = {
   'presupuestos':   () => vistaPresupuestos(app),
   'papelera':       () => vistaPapelera(app),
   'recibo':         (id) => vistaRecibo(app, id),
+  'admin':          () => vistaAdmin(app),
+  'cambiar-clave':  () => vistaCambiarClave(app, { voluntario: true }),
   'presupuesto':    (id) => vistaPresupuestoDetalle(app, id),
   'presupuesto-nuevo': (clienteId, equipoId) => vistaPresupuestoFormulario(app, { clienteId, equipoId }),
   'presupuesto-editar': (id) => vistaPresupuestoFormulario(app, { id }),
@@ -63,14 +67,23 @@ async function navegar() {
     return vistaLogin(app);
   }
   nav.hidden = false; btnSalir.hidden = false; btnTema.hidden = false;
+  if (!negocioCargado) negocioCargado = cargarNegocio().catch(() => ({ ok: false }));
+  await negocioCargado;
+  pintarMarca();
+
+  // Cuenta suspendida por el administrador, o contraseña provisoria sin cambiar
+  if (negocioSuspendido() || debeCambiarClave()) {
+    nav.hidden = true; fab.hidden = true; document.body.classList.remove('con-fab');
+    return negocioSuspendido() ? vistaSuspendida(app) : vistaCambiarClave(app, { alTerminar: () => { negocioCargado = null; location.hash = '#/inicio'; navegar(); } });
+  }
   arrancarSync();
-  if (!negocioCargado) { negocioCargado = true; cargarNegocio().catch(() => {}); }
 
   const [nombre, id, extra] = location.hash.replace(/^#\//, '').split('/');
-  const ruta = rutas[nombre] ? nombre : 'inicio';
+  let ruta = rutas[nombre] ? nombre : 'inicio';
+  if (ruta === 'admin' && !esSuperadmin()) ruta = 'inicio';
   nav.querySelectorAll('a').forEach((a) => {
     const r = a.dataset.ruta;
-    a.classList.toggle('activo', r === ruta || (r === 'clientes' && /^(cliente|equipo|trabajo|presupuesto-|presupuesto$|recibo)/.test(ruta)) || (r === 'ajustes' && /^(precios|resumen|presupuestos|papelera)/.test(ruta)));
+    a.classList.toggle('activo', r === ruta || (r === 'clientes' && /^(cliente|equipo|trabajo|presupuesto-|presupuesto$|recibo)/.test(ruta)) || (r === 'ajustes' && /^(precios|resumen|presupuestos|papelera|admin|cambiar-clave)/.test(ruta)));
   });
 
   fab.hidden = !['inicio', 'agenda', 'clientes', 'cliente', 'equipo'].includes(ruta);
@@ -98,6 +111,16 @@ btnSalir.addEventListener('click', async () => {
   if (!(await prepararSalida())) return;
   await sb.auth.signOut();
 });
+
+// Encabezado: logo y nombre del negocio de cada técnico
+function pintarMarca() {
+  const n = negocio();
+  const txt = document.querySelector('.marca-txt');
+  const img = document.querySelector('.marca-img');
+  if (txt) txt.textContent = n.nombre || 'DC';
+  if (img) img.src = logoNegocio() || 'iconos/emblema.png';
+  document.querySelector('.marca')?.setAttribute('aria-label', `${n.nombre || 'DC'}, ir a Inicio`);
+}
 
 // Modo sin señal: al terminar de subir cambios, refresca la pantalla (salvo que estés escribiendo)
 let syncIniciada = false;
@@ -148,7 +171,8 @@ if (configurado) {
     const cambio = !!nueva !== !!sesion;
     sesion = nueva;
     if (cambio) {
-      negocioCargado = false;
+      negocioCargado = null;
+      olvidarNegocio();
       if (sesion && !location.hash) location.hash = '#/inicio';
       navegar();
     }

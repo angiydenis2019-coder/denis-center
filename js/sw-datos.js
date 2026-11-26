@@ -8,7 +8,7 @@
 /* eslint-env serviceworker */
 
 const DB_NOMBRE = 'denis-center-offline';
-const TABLAS = ['clientes', 'equipos', 'trabajos', 'repuestos', 'pagos', 'fotos', 'precios', 'negocio', 'perfiles', 'presupuestos', 'presupuesto_items'];
+const TABLAS = ['clientes', 'equipos', 'trabajos', 'repuestos', 'pagos', 'fotos', 'precios', 'negocio', 'negocios', 'perfiles', 'presupuestos', 'presupuesto_items'];
 const ZONA = 'America/Argentina/Buenos_Aires';
 const GARANTIA_DIAS = 90;
 
@@ -19,7 +19,7 @@ let _db = null;
 function abrirDB() {
   if (_db) return Promise.resolve(_db);
   return new Promise((ok, mal) => {
-    const req = indexedDB.open(DB_NOMBRE, 2);
+    const req = indexedDB.open(DB_NOMBRE, 3);
     req.onupgradeneeded = () => {
       const db = req.result;
       const crear = (nombre, opciones) => { if (!db.objectStoreNames.contains(nombre)) db.createObjectStore(nombre, opciones); };

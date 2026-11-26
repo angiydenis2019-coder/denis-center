@@ -16,14 +16,17 @@ export const numeroRecibo = (t) => {
   return `R-${String(d.getFullYear()).slice(2)}${p(d.getMonth() + 1)}${p(d.getDate())}-${t.id.slice(0, 4).toUpperCase()}`;
 };
 
-let logo = null;
-function cargarLogo() {
-  if (logo) return Promise.resolve(logo);
+// Logo del técnico (el que subió en Ajustes). Sin logo, se escribe el nombre del negocio.
+const logos = new Map();
+function cargarLogo(url) {
+  if (!url) return Promise.resolve(null);
+  if (logos.has(url)) return Promise.resolve(logos.get(url));
   return new Promise((ok) => {
     const img = new Image();
-    img.onload = () => { logo = img; ok(img); };
+    img.crossOrigin = 'anonymous'; // para poder compartir la imagen generada
+    img.onload = () => { logos.set(url, img); ok(img); };
     img.onerror = () => ok(null);
-    img.src = 'iconos/logo.png';
+    img.src = url;
   });
 }
 
@@ -42,7 +45,7 @@ function renglones(ctx, texto, ancho) {
 
 export async function dibujarRecibo(d) {
   await document.fonts?.ready;
-  const img = await cargarLogo();
+  const img = await cargarLogo(d.negocio.logo_url);
   const c = document.createElement('canvas');
   c.width = ANCHO; c.height = 2400;
   const x = c.getContext('2d');
@@ -53,7 +56,8 @@ export async function dibujarRecibo(d) {
 
   // Logo
   if (img) {
-    const w = 440, h = Math.round(img.height * (w / img.width));
+    const esc = Math.min(440 / img.width, 300 / img.height);
+    const w = Math.round(img.width * esc), h = Math.round(img.height * esc);
     x.drawImage(img, (ANCHO - w) / 2, y, w, h); y += h + 30;
   } else {
     x.fillStyle = AZUL; x.font = `italic 800 64px ${TITULOS}`; x.textAlign = 'center';

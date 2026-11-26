@@ -93,8 +93,8 @@ body {
   background: var(--azul-claro); color: var(--acento); }
 [data-tema="azul"] .marca-ic { background: #ffffff; color: #1f7ae0; }
 .marca-txt { font-family: Montserrat, Inter, sans-serif; font-style: italic; font-weight: 800; font-size: 1.2rem; letter-spacing: -.3px; }
-.marca-txt span { color: var(--acento); }
-[data-tema="azul"] .marca-txt span { color: #7cc4ff; }
+.marca-img { width: 36px; height: 36px; object-fit: contain; border-radius: 9px; background: #fff; padding: 2px; flex: none; }
+.marca-txt { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 52vw; }
 .barra-der { display: flex; align-items: center; gap: 8px; }
 .btn-icono { width: 42px; height: 42px; border: 0; border-radius: 12px; display: flex; align-items: center; justify-content: center;
   background: var(--superficie-2); color: var(--barra-texto); cursor: pointer; }
@@ -412,3 +412,15 @@ a.tarjeta.agenda-item { display: flex; }
 .traer .btn { padding: 0 10px; }
 .ubic-botones { display: grid; grid-template-columns: 1fr 1fr auto; gap: 8px; margin: 8px 0 4px; }
 .ubic-botones .btn { padding: 0 10px; min-height: 44px; font-size: .92rem; }
+
+/* ---- Multi-negocio: logo, cuenta y panel del administrador ---- */
+.logo-negocio { display: flex; align-items: center; gap: 14px; }
+.logo-negocio img { width: 84px; height: 84px; object-fit: contain; border-radius: 12px; background: #fff; border: 1px solid var(--borde); padding: 4px; }
+.clave-provisoria { font-family: ui-monospace, Menlo, monospace; font-size: 1.5rem; font-weight: 700; letter-spacing: 1px; text-align: center;
+  padding: 12px; border-radius: 12px; background: var(--fondo); border: 2px dashed var(--acento); user-select: all; }
+.negocio-fila .titulo { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.etiqueta-estado { font-size: .78rem; font-weight: 600; padding: 2px 8px; border-radius: 99px; background: #e3f4ea; color: #1e7a45; }
+.etiqueta-estado.suspendido { background: #fde8e8; color: #a32020; }
+.etiqueta-estado.provisoria { background: #fff2dc; color: #8a5300; }
+.negocio-fila .acciones { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
+.negocio-fila .acciones .btn { padding: 8px 12px; min-height: 40px; font-size: .9rem; }

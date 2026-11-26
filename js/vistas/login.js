@@ -4,7 +4,7 @@ import { mensajeError } from '../util.js';
 export function vistaLogin(app) {
   app.innerHTML = `
     <div class="login tarjeta">
-      <img class="logo-login" src="iconos/logo.png" alt="Denis Center — Servicios de refrigeración">
+      <img class="logo-login" src="iconos/emblema.png" alt="DC" style="max-width:170px">
       <h1>Ingresar</h1>
       <form id="f-login">
         <label for="email">Correo</label>

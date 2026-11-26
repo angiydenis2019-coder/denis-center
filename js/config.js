@@ -9,7 +9,7 @@ export const SUPABASE_KEY = 'sb_publishable_5kGsWhHV9S4bOJrFgkAe_A_k_QobIXj';
 
 // Datos del negocio (se usan en mensajes y comprobantes)
 export const NEGOCIO = {
-  nombre: 'Denis Center',
-  tecnico: 'Denis Ariel Torres',
+  nombre: 'DC',
+  tecnico: '',
   garantiaDias: 90,
 };

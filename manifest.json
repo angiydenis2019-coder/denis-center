@@ -1,13 +1,13 @@
 {
-  "name": "Denis Center",
-  "short_name": "Denis Center",
+  "name": "DC",
+  "short_name": "DC",
   "description": "Trabajos, clientes, turnos y garantías",
   "start_url": "./#/inicio",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#ffffff",
-  "theme_color": "#0b4f6c",
+  "theme_color": "#0b2e5c",
   "lang": "es-AR",
   "icons": [
     {
