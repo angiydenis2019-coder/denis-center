@@ -29,6 +29,18 @@ const app = document.getElementById('app');
 const nav = document.getElementById('nav');
 const btnSalir = document.getElementById('btn-salir');
 const btnTema = document.getElementById('btn-tema');
+const btnRecargar = document.getElementById('btn-recargar');
+
+// Botón Actualizar: busca versión nueva de la app y recarga la pantalla
+btnRecargar.addEventListener('click', async () => {
+  btnRecargar.classList.add('girando');
+  btnRecargar.disabled = true;
+  try {
+    const reg = await navigator.serviceWorker?.getRegistration();
+    if (reg && navigator.onLine) await Promise.race([reg.update(), new Promise((ok) => setTimeout(ok, 3000))]);
+  } catch { /* sin señal: recarga igual */ }
+  location.reload();
+});
 const fab = document.getElementById('fab');
 let sesion = null;
 let negocioCargado = null; // promesa de carga de los datos del negocio

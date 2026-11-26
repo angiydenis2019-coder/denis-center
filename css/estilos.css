@@ -88,14 +88,14 @@ body {
   border-bottom: 1px solid var(--barra-borde);
   padding: 10px 14px; padding-top: max(10px, env(safe-area-inset-top));
 }
-.marca { display: flex; align-items: center; gap: 8px; color: inherit; text-decoration: none; }
+.marca { display: flex; align-items: center; gap: 8px; color: inherit; text-decoration: none; flex: 1; min-width: 0; }
 .marca-ic { width: 36px; height: 36px; border-radius: 11px; display: flex; align-items: center; justify-content: center;
   background: var(--azul-claro); color: var(--acento); }
 [data-tema="azul"] .marca-ic { background: #ffffff; color: #1f7ae0; }
 .marca-txt { font-family: Montserrat, Inter, sans-serif; font-style: italic; font-weight: 800; font-size: 1.2rem; letter-spacing: -.3px; }
 .marca-img { width: 36px; height: 36px; object-fit: contain; border-radius: 9px; background: #fff; padding: 2px; flex: none; }
-.marca-txt { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 52vw; }
-.barra-der { display: flex; align-items: center; gap: 8px; }
+.marca-txt { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.barra-der { display: flex; align-items: center; gap: 6px; flex: none; margin-left: 8px; }
 .btn-icono { width: 42px; height: 42px; border: 0; border-radius: 12px; display: flex; align-items: center; justify-content: center;
   background: var(--superficie-2); color: var(--barra-texto); cursor: pointer; }
 [data-tema="azul"] .btn-icono { background: rgba(255,255,255,.14); }
@@ -472,3 +472,9 @@ a.tarjeta.agenda-item { display: flex; }
 .desplegable[open] > summary::after { transform: rotate(90deg); }
 .desplegable > form { padding: 0 16px 16px; }
 .titulo-pref { font-size: .95rem; margin: 14px 0 6px; color: var(--gris); }
+
+/* ---- Botón Actualizar ---- */
+#btn-recargar.girando svg { animation: girar .8s linear infinite; }
+@keyframes girar { to { transform: rotate(360deg); } }
+
+@media (max-width: 380px) { .barra-der .btn-icono { width: 38px; height: 38px; } }
