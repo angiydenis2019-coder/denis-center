@@ -451,3 +451,14 @@ a.tarjeta.agenda-item { display: flex; }
   background: #d93025; color: #fff; font-size: .72rem; font-weight: 700; line-height: 18px; text-align: center; }
 .aviso-solicitudes { display: flex; align-items: center; gap: 8px; text-decoration: none; color: inherit; }
 .aviso-solicitudes span { margin-left: auto; font-size: 1.3rem; }
+
+/* ---- Clima en Inicio ---- */
+.clima { display: flex; align-items: center; gap: 12px; width: 100%; margin: 4px 0 12px; padding: 10px 14px; border-radius: 16px;
+  border: 1px solid var(--borde); background: var(--superficie); color: inherit; font: inherit; box-shadow: var(--sombra); text-align: left; cursor: pointer; }
+.clima-icono { font-size: 2rem; line-height: 1; }
+.clima-temp { font-family: Montserrat, Inter, sans-serif; font-weight: 800; font-size: 2rem; letter-spacing: -1px; }
+.clima-datos { display: flex; flex-direction: column; font-size: .85rem; line-height: 1.35; min-width: 0; }
+.clima-datos b { font-size: .95rem; }
+.clima-datos span { color: var(--gris); }
+.clima-cargando { opacity: .6; }
+.clima-nota { margin: 4px 0 12px; }

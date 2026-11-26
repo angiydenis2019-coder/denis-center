@@ -3,6 +3,7 @@ import { cargarIndice, filtrar, tarjetaCliente } from '../buscar.js';
 import { montarRecordatorios } from '../recordatorios.js';
 import { montarPresupuestosInicio } from './presupuestos.js';
 import { cargarNegocio } from '../negocio.js';
+import { montarClima } from '../clima.js';
 import { esc, pesos, fechaHora, fecha, etiquetaCobro } from '../util.js';
 
 export async function vistaInicio(app) {
@@ -34,6 +35,7 @@ export async function vistaInicio(app) {
     <div class="hero">
       <p class="fecha-hoy">${esc(new Date().toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long' }).replace(/^\w/, (c) => c.toUpperCase()))}</p>
       <h1>Hola, ${esc(perfil.nombre)}</h1>
+      <div id="clima"></div>
       <input class="buscador" id="buscar-inicio" type="search" placeholder="Buscar cliente, DNI, teléfono o equipo" autocomplete="off" aria-label="Buscar cliente">
     </div>
     <div id="resultados" hidden></div>
@@ -71,6 +73,7 @@ export async function vistaInicio(app) {
     <div id="recordatorios" hidden></div>
     </div>
   `;
+  montarClima(app.querySelector('#clima'));
   cargarNegocio().catch(() => {}).finally(() => montarRecordatorios(app.querySelector('#recordatorios')));
   montarPresupuestosInicio(app.querySelector('#presupuestos-ini')).catch(() => {});
 
