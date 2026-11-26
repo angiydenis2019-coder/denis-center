@@ -14,6 +14,7 @@ import { cargarNegocio, negocio, negocioSuspendido, debeCambiarClave, esSuperadm
 import { vistaSuspendida, vistaCambiarClave } from './vistas/cuenta.js';
 import { vistaAdmin } from './vistas/admin.js';
 import { vistaTerminos } from './vistas/terminos.js';
+import { vistaInvitacion } from './vistas/invitacion.js';
 import { VERSION_TERMINOS } from './terminos.js';
 import { miPerfil, esMultinegocio } from './negocio.js';
 import { iniciarSincronizacion, prepararSalida, pedirSincronizacion } from './sincronizar.js';
@@ -64,6 +65,12 @@ async function navegar() {
     app.innerHTML = `<div class="tarjeta"><h1>Falta configurar</h1>
       <p>Abrí <b>js/config.js</b> y pegá la URL y la clave pública de tu proyecto de Supabase.</p></div>`;
     return;
+  }
+  // Formulario de invitación: es público (el técnico todavía no tiene cuenta)
+  if (location.hash.startsWith('#/invitacion/')) {
+    nav.hidden = true; fab.hidden = true; btnSalir.hidden = true; btnTema.hidden = true;
+    document.body.classList.remove('con-fab');
+    return vistaInvitacion(app, location.hash.split('/')[2]);
   }
   if (!sesion && location.hash.startsWith('#/terminos')) {
     nav.hidden = true; fab.hidden = true;

@@ -4,14 +4,14 @@
 // Cada vez que cambies archivos de la app, subí el número de versión.
 importScripts('./js/sw-datos.js');
 
-const VERSION = 'denis-center-v21';
+const VERSION = 'denis-center-v22';
 const ARCHIVOS = [
   './', './index.html', './manifest.json', './css/estilos.css',
   './js/app.js', './js/config.js', './js/supabase.js', './js/util.js', './js/fotos.js', './js/negocio.js',
   './js/buscar.js', './js/recordatorios.js', './js/sincronizar.js', './js/sw-datos.js', './js/iconos.js', './js/tema.js', './js/rapidos.js', './js/dictado.js', './js/contactos.js',
   './js/vistas/login.js', './js/vistas/inicio.js', './js/vistas/clientes.js',
   './js/vistas/equipos.js', './js/vistas/trabajos.js', './js/vistas/ajustes.js', './js/vistas/agenda.js',
-  './js/vistas/precios.js', './js/vistas/resumen.js', './js/vistas/presupuestos.js', './js/vistas/papelera.js', './js/vistas/recibo.js', './js/vistas/cuenta.js', './js/vistas/admin.js', './js/vistas/terminos.js', './js/terminos.js',
+  './js/vistas/precios.js', './js/vistas/resumen.js', './js/vistas/presupuestos.js', './js/vistas/papelera.js', './js/vistas/recibo.js', './js/vistas/cuenta.js', './js/vistas/admin.js', './js/vistas/terminos.js', './js/vistas/invitacion.js', './js/terminos.js',
   './iconos/icono-192.png', './iconos/icono-512.png', './iconos/icono-maskable-512.png', './iconos/logo.png', './iconos/emblema.png',
 ];
 
@@ -62,7 +62,7 @@ self.addEventListener('fetch', (e) => {
     const esSubidaFoto = url.pathname.startsWith('/storage/v1/object/fotos/') && req.method === 'POST';
 
     // Panel del administrador: siempre directo a internet (nunca a la cola)
-    if (url.pathname.includes('/rpc/admin_')) return;
+    if (url.pathname.includes('/rpc/admin_') || url.pathname.includes('/rpc/invitacion_')) return;
 
     // Logos de los negocios: se guardan para verlos también sin señal
     if (url.pathname.startsWith('/storage/v1/object/public/logos/') && req.method === 'GET') {

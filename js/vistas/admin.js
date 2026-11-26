@@ -64,8 +64,23 @@ export async function vistaAdmin(app) {
 
     <div id="zona-resultado"></div>
 
+    <div class="tarjeta">
+      <h3 style="margin-top:0">${ic('chat', 18)} Invitar técnico</h3>
+      <p class="sub" style="margin-top:0">Le mandás un link por WhatsApp, él completa sus datos y acepta los términos, y vos aprobás la solicitud acá.</p>
+      <form id="f-invitar">
+        <label for="inv-para">Para quién <span class="ayuda">— opcional, para acordarte</span></label>
+        <input id="inv-para" name="para" placeholder="ej: Carlos de Clorinda" autocomplete="off">
+        <label for="inv-tel">Su celular <span class="ayuda">— opcional: si lo ponés, WhatsApp abre directo su chat</span></label>
+        <input id="inv-tel" name="telefono" type="tel" inputmode="tel" autocomplete="off">
+        <div class="botones"><button class="btn" type="submit">${ic('chat', 18)} Generar invitación</button></div>
+        <p class="msg error" hidden></p>
+      </form>
+    </div>
+
+    <div id="zona-solicitudes"></div>
+
     <details class="tarjeta" id="det-nuevo">
-      <summary><b>${ic('mas', 18)} Nuevo técnico</b></summary>
+      <summary><b>${ic('mas', 18)} Cargar técnico a mano</b></summary>
       <form id="f-nuevo" style="margin-top:12px">
         <label for="nt-apellido">Apellido</label>
         <input id="nt-apellido" name="apellido" required autocomplete="off" autocapitalize="words">
@@ -122,7 +137,112 @@ export async function vistaAdmin(app) {
     b.disabled = false; b.textContent = 'Crear cuenta';
   });
 
-  await pintarLista(app, zona);
+  // --- Invitaciones
+  const fi = app.querySelector('#f-invitar');
+  fi.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const m = fi.querySelector('.msg'); m.hidden = true;
+    if (!navigator.onLine) { m.textContent = 'Necesitás señal para esto.'; m.hidden = false; return; }
+    const { data: token, error } = await sb.rpc('admin_crear_invitacion', { p_nota: fi.para.value });
+    if (error) {
+      m.textContent = /admin_crear_invitacion|function/i.test(error.message) ? 'Falta ejecutar sql/11_invitaciones.sql en Supabase.' : mensajeError(error);
+      m.hidden = false; return;
+    }
+    const link = `${linkApp()}#/invitacion/${token}`;
+    const msj = `Hola, te invito a usar *DC*, la app para registrar tus trabajos, clientes, turnos y garantías.\n\n`
+      + `Completá tus datos en este link (vence en 7 días y se usa una sola vez):\n${link}\n\n`
+      + `Cuando los revise, te mando el acceso por acá. Consultas: ${CONTACTO_EMAIL}`;
+    const tel = fi.telefono.value.trim();
+    zona.innerHTML = `
+      <div class="tarjeta banner" id="resultado-invitacion">
+        <h3 style="margin-top:0">${ic('check', 18)} Invitación lista${fi.para.value ? ' para ' + esc(fi.para.value) : ''}</h3>
+        <p class="sub" style="word-break:break-all">${esc(link)}</p>
+        <div class="botones">
+          <a class="btn whatsapp" target="_blank" rel="noopener" href="${esc(tel ? linkWhatsApp(tel, msj) : 'https://wa.me/?text=' + encodeURIComponent(msj))}">${ic('chat', 18)} Mandar por WhatsApp</a>
+          <button class="btn secundario" type="button" id="btn-copiar-msj" data-msj="${esc(msj)}">${ic('copiar', 18)} Copiar mensaje</button>
+        </div>
+      </div>`;
+    activarCopiar(zona);
+    fi.reset();
+    window.scrollTo(0, 0);
+    await pintarInvitaciones(app, zona);
+  });
+
+  await Promise.all([pintarInvitaciones(app, zona), pintarLista(app, zona)]);
+}
+
+// Solicitudes completadas (para aprobar) e invitaciones enviadas sin completar
+async function pintarInvitaciones(app, zona) {
+  const caja = app.querySelector('#zona-solicitudes');
+  const { data, error } = await sb.from('invitaciones').select('*').in('estado', ['pendiente', 'completada']).order('creado_en', { ascending: false });
+  if (error) { caja.innerHTML = ''; return; } // sql/11 sin ejecutar: no se muestra nada
+  const solicitudes = data.filter((i) => i.estado === 'completada');
+  const enviadas = data.filter((i) => i.estado === 'pendiente');
+  const ahora = Date.now();
+  caja.innerHTML = `
+    ${solicitudes.length ? `<h2>Solicitudes para aprobar <span class="etiqueta-estado provisoria">${solicitudes.length}</span></h2>
+    <div class="tarjeta">${solicitudes.map((i) => `
+      <div class="negocio-fila linea" data-inv="${esc(i.id)}">
+        <div class="titulo"><b>${esc(i.apellido)}, ${esc(i.nombre)}</b>${i.nota ? `<span class="sub">(${esc(i.nota)})</span>` : ''}</div>
+        <div class="sub">${esc(i.localidad || '')}${i.negocio ? ' · ' + esc(i.negocio) : ''}</div>
+        <div class="sub">${esc(i.email)} · ${esc(i.telefono)}</div>
+        <div class="sub">Completó el ${fechaHora(i.completada_en)} · Aceptó términos v${esc(i.terminos_version || '-')}</div>
+        <div class="acciones">
+          <button class="btn" type="button" data-accion="aprobar">${ic('check', 16)} Aprobar y crear cuenta</button>
+          <button class="btn-peligro" type="button" data-accion="rechazar">Rechazar</button>
+        </div>
+      </div>`).join('')}</div>` : ''}
+    ${enviadas.length ? `<details class="tarjeta ayuda-det">
+      <summary>Invitaciones enviadas sin completar (${enviadas.length})</summary>
+      ${enviadas.map((i) => `
+        <div class="fila linea" data-inv="${esc(i.id)}" style="align-items:center">
+          <div><div>${esc(i.nota || 'Sin nombre')}</div>
+            <div class="sub">${new Date(i.vence_en).getTime() < ahora ? '<b>Vencida</b>' : 'Vence el ' + fecha(i.vence_en)}</div></div>
+          <button class="btn-texto" type="button" data-accion="anular">Anular</button>
+        </div>`).join('')}
+    </details>` : ''}
+    <p class="msg sub" hidden></p>`;
+
+  const avisar = (t, esError) => {
+    const m = caja.querySelector(':scope > .msg'); if (!m) return;
+    m.hidden = false; m.textContent = t; m.classList.toggle('error', esError);
+  };
+  const resolver = async (id, estado, negocioId = null) =>
+    sb.rpc('admin_resolver_invitacion', { p_id: id, p_estado: estado, p_negocio: negocioId });
+
+  caja.querySelectorAll('[data-inv]').forEach((fila) => {
+    const inv = data.find((x) => x.id === fila.dataset.inv);
+    fila.querySelector('[data-accion=aprobar]')?.addEventListener('click', async (e) => {
+      if (!confirm(`¿Crear la cuenta de ${inv.apellido}, ${inv.nombre}?`)) return;
+      const b = e.currentTarget; b.disabled = true; b.textContent = 'Creando…';
+      try {
+        const r = await llamar({
+          accion: 'crear', nombre: `${inv.nombre} ${inv.apellido}`,
+          negocio: inv.negocio || `${inv.apellido} ${inv.nombre}`, email: inv.email, telefono: inv.telefono,
+        });
+        await sb.rpc('admin_set_datos', { p_negocio: r.negocio_id, p_apellido: inv.apellido, p_nombre: inv.nombre, p_localidad: inv.localidad || '' });
+        await resolver(inv.id, 'aprobada', r.negocio_id);
+        zona.innerHTML = tarjetaClave({ titulo: `Cuenta creada para ${inv.apellido}, ${inv.nombre}`, nombre: inv.nombre, email: r.email, clave: r.clave, telefono: inv.telefono });
+        activarCopiar(zona);
+        window.scrollTo(0, 0);
+        await Promise.all([pintarInvitaciones(app, zona), pintarLista(app, zona)]);
+      } catch (err) {
+        avisar(err.message, true); b.disabled = false; b.textContent = 'Aprobar y crear cuenta';
+      }
+    });
+    fila.querySelector('[data-accion=rechazar]')?.addEventListener('click', async () => {
+      if (!confirm(`¿Rechazar la solicitud de ${inv.apellido}, ${inv.nombre}? No se crea ninguna cuenta.`)) return;
+      const { error: err } = await resolver(inv.id, 'rechazada');
+      if (err) return avisar(mensajeError(err), true);
+      await pintarInvitaciones(app, zona); avisar('✔ Solicitud rechazada', false);
+    });
+    fila.querySelector('[data-accion=anular]')?.addEventListener('click', async () => {
+      if (!confirm('¿Anular esta invitación? El link deja de funcionar.')) return;
+      const { error: err } = await resolver(inv.id, 'anulada');
+      if (err) return avisar(mensajeError(err), true);
+      await pintarInvitaciones(app, zona); avisar('✔ Invitación anulada', false);
+    });
+  });
 }
 
 async function pintarLista(app, zona) {

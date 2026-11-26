@@ -155,3 +155,9 @@ iconos/
   desde qué dispositivo (tabla `aceptaciones_terminos`).
 - Si se cambia el texto, subir `VERSION_TERMINOS` y a todos se les vuelve a pedir.
 - Instalación: ejecutar `sql/09_terminos.sql` en Supabase → SQL Editor.
+
+## Versión 2.2 — Invitaciones
+- En Administración → **Invitar técnico** se genera un link único (dura 7 días, se usa una vez) para mandar por WhatsApp.
+- El técnico completa apellido, nombre, localidad, negocio, correo y celular, y acepta los términos, sin tener cuenta.
+- La solicitud aparece en **Solicitudes para aprobar**: al aprobar se crea la cuenta y se muestra la contraseña provisoria.
+- Instalación: ejecutar `sql/10_datos_tecnico.sql` y `sql/11_invitaciones.sql` en Supabase → SQL Editor.
