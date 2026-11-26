@@ -121,3 +121,8 @@ iconos/
 - Eliminar clientes, equipos, trabajos/turnos y presupuestos; Papelera para recuperarlos (Ajustes → Herramientas)
 - Boleta / comprobante de pago en imagen con logo: concepto editable y total (mano de obra y repuestos incluidos), sin detalle; compartir por WhatsApp o descargar
 - El mensaje de WhatsApp del trabajo ya no muestra el detalle de repuestos
+
+## Versión 1.5 — Clientes desde el celular
+- Nuevo cliente: "Mis contactos" (agenda del celular) y "Pegar número" (limpia +54 9, espacios y guiones)
+- Denis Center aparece en "Compartir" de Android: compartir un contacto desde WhatsApp abre Nuevo cliente completado
+- Aviso si el teléfono ya pertenece a otro cliente

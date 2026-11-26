@@ -20,7 +20,7 @@ export function vistaLogin(app) {
   const error = app.querySelector('#login-error');
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const boton = form.querySelector('button');
+    const boton = form.querySelector('button[type=submit]');
     boton.disabled = true; error.hidden = true;
     const { error: err } = await sb.auth.signInWithPassword({
       email: form.email.value.trim(),

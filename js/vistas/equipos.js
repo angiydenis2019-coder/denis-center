@@ -112,7 +112,7 @@ export async function vistaEquipoFormulario(app, { clienteId = null, id = null }
   form.addEventListener('submit', async (ev) => {
     ev.preventDefault();
     const datos = datosFormulario(form);
-    const boton = form.querySelector('button');
+    const boton = form.querySelector('button[type=submit]');
     boton.disabled = true; error.hidden = true;
     const nuevoId = id || crypto.randomUUID();
     const { error: err } = id

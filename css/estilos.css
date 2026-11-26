@@ -402,3 +402,11 @@ a.tarjeta.agenda-item { display: flex; }
 .btn-peligro:hover { background: color-mix(in srgb, var(--rojo) 10%, transparent); }
 .recibo-vista { background: var(--superficie-2); border-radius: 16px; padding: 12px; margin-top: 12px; }
 .recibo-vista img { display: block; width: 100%; max-width: 420px; margin: 0 auto; border-radius: 8px; box-shadow: 0 4px 18px rgba(0,0,0,.15); background: #fff; min-height: 200px; }
+
+/* ---------- Traer cliente desde el celular ---------- */
+.traer { background: var(--azul-claro); border-radius: 14px; padding: 12px 14px; margin-bottom: 12px; }
+.traer .btn { min-height: 44px; }
+.aviso-dup { margin: 8px 0 0; padding: 8px 10px; border-radius: 10px; background: var(--amarillo-fondo); color: var(--amarillo-texto); font-size: .9rem; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+.aviso-dup a { color: inherit; font-weight: 700; }
+.traer .botones { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; }
+.traer .btn { padding: 0 10px; }

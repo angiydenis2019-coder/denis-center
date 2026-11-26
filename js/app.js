@@ -31,7 +31,7 @@ const rutas = {
   'inicio':         () => vistaInicio(app),
   'clientes':       () => vistaClientes(app),
   'cliente':        (id) => vistaClienteFicha(app, id),
-  'cliente-nuevo':  () => vistaClienteFormulario(app, null),
+  'cliente-nuevo':  (extra) => vistaClienteFormulario(app, null, extra === 'compartido'),
   'cliente-editar': (id) => vistaClienteFormulario(app, id),
   'equipo':         (id) => vistaEquipoFicha(app, id),
   'equipo-nuevo':   (clienteId) => vistaEquipoFormulario(app, { clienteId }),

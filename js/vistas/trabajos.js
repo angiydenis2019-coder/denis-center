@@ -368,7 +368,7 @@ export async function vistaTrabajoFormulario(app, { id = null, clienteId = null,
       mano_obra: Number(d.mano_obra) || 0,
       notas: d.notas,
     };
-    const boton = form.querySelector('button');
+    const boton = form.querySelector('button[type=submit]');
     boton.disabled = true; error.hidden = true;
 
     let nuevoId = id;

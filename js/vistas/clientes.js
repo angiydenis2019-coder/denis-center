@@ -1,4 +1,5 @@
 import { botonEliminar, activarEliminar } from './papelera.js';
+import { agendaDisponible, elegirDeAgenda, leerPortapapeles, leerCompartido, normalizarTelefono } from '../contactos.js';
 import { ic } from '../iconos.js';
 import { sb } from '../supabase.js';
 import { negocio, tieneAlias, mensajeAlias, activarCopiarAlias } from '../negocio.js';
@@ -103,7 +104,7 @@ export async function vistaClienteFicha(app, id) {
 // ---------------------------------------------------------------------
 // FORMULARIO: nuevo cliente / editar cliente
 // ---------------------------------------------------------------------
-export async function vistaClienteFormulario(app, id) {
+export async function vistaClienteFormulario(app, id, compartido = false) {
   let c = { nombre: '', apellido: '', dni: '', telefono: '', direccion: '', notas: '' };
   if (id) {
     const { data, error } = await sb.from('clientes').select('*').eq('id', id).maybeSingle();
@@ -115,6 +116,14 @@ export async function vistaClienteFormulario(app, id) {
 
   app.innerHTML = `
     <h1>${id ? 'Editar cliente' : 'Nuevo cliente'}</h1>
+    ${id ? '' : `<div class="traer">
+      <p class="sub" style="margin:0 0 8px">Traer los datos desde el celular:</p>
+      <div class="botones" style="margin:0">
+        ${agendaDisponible ? `<button class="btn secundario" type="button" id="btn-agenda">${ic('clientes', 18)} Mis contactos</button>` : ''}
+        ${navigator.clipboard?.readText ? `<button class="btn secundario" type="button" id="btn-pegar">${ic('copiar', 18)} Pegar número</button>` : ''}
+      </div>
+      <p class="sub" id="traer-msg" style="margin:8px 0 0" hidden></p>
+    </div>`}
     <form id="f-cliente" class="tarjeta">
       <label for="nombre">Nombre *</label>
       <input id="nombre" name="nombre" required value="${v('nombre')}" autocapitalize="words">
@@ -124,6 +133,7 @@ export async function vistaClienteFormulario(app, id) {
       <input id="dni" name="dni" inputmode="numeric" pattern="[0-9.]*" value="${v('dni')}">
       <label for="telefono">Teléfono <span class="ayuda">— código de área + número, sin 0 ni 15 (ej: 3704 123456)</span></label>
       <input id="telefono" name="telefono" type="tel" value="${v('telefono')}">
+      <p id="tel-duplicado" class="aviso-dup" hidden></p>
       <label for="direccion">Dirección <span class="ayuda">— con la localidad, o pegá el link de ubicación que te manden por WhatsApp</span></label>
       <input id="direccion" name="direccion" value="${v('direccion')}">
       <label for="notas">Notas</label>
@@ -137,12 +147,64 @@ export async function vistaClienteFormulario(app, id) {
 
   const form = app.querySelector('#f-cliente');
   const error = app.querySelector('#f-error');
+  const msg = app.querySelector('#traer-msg');
+  const avisar = (texto) => { if (msg) { msg.hidden = false; msg.textContent = texto; } };
+
+  // Completa el formulario con lo que se trajo (sin pisar lo que ya escribiste)
+  const completar = (d) => {
+    if (!d) return false;
+    let algo = false;
+    for (const k of ['nombre', 'apellido', 'telefono']) {
+      if (d[k] && !form[k].value.trim()) { form[k].value = d[k]; algo = true; }
+      else if (d[k] && k === 'telefono') { form[k].value = d[k]; algo = true; }
+    }
+    form.telefono.dispatchEvent(new Event('input', { bubbles: true }));
+    return algo;
+  };
+
+  app.querySelector('#btn-agenda')?.addEventListener('click', async () => {
+    try {
+      const d = await elegirDeAgenda();
+      if (completar(d)) avisar('✔ Datos traídos de tus contactos. Revisalos antes de guardar.');
+    } catch { avisar('No se pudo abrir la agenda del celular.'); }
+  });
+  app.querySelector('#btn-pegar')?.addEventListener('click', async () => {
+    try {
+      const d = await leerPortapapeles();
+      if (d.telefono) { completar(d); avisar(`✔ Número pegado: ${d.telefono}`); }
+      else avisar('No encontré un número en lo que copiaste. En WhatsApp, tocá el número y elegí "Copiar".');
+    } catch { avisar('Permití el acceso al portapapeles para pegar el número.'); }
+  });
+  if (compartido) {
+    const d = await leerCompartido();
+    if (completar(d)) avisar('✔ Datos traídos desde WhatsApp. Revisalos antes de guardar.');
+  }
+
+  // Aviso si el teléfono ya es de otro cliente
+  const dup = app.querySelector('#tel-duplicado');
+  let otros = null;
+  const revisarDuplicado = async () => {
+    const tel = normalizarTelefono(form.telefono.value);
+    if (tel.length < 8) { dup.hidden = true; return; }
+    if (!otros) {
+      const { data } = await sb.from('clientes').select('id, nombre, apellido, telefono').eq('eliminado', false);
+      otros = (data || []).filter((x) => x.id !== id);
+    }
+    const igual = otros.find((x) => normalizarTelefono(x.telefono).slice(-8) === tel.slice(-8));
+    dup.hidden = !igual;
+    if (igual) dup.innerHTML = `${ic('alerta', 16)} Ya tenés un cliente con ese teléfono: <a href="#/cliente/${esc(igual.id)}">${esc(nombreCompleto(igual))}</a>`;
+  };
+  let espera = null;
+  form.telefono.addEventListener('input', () => { clearTimeout(espera); espera = setTimeout(revisarDuplicado, 400); });
+  if (form.telefono.value) revisarDuplicado();
+
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const datos = datosFormulario(form);
     if (datos.dni) datos.dni = datos.dni.replace(/\D/g, '');
+    if (datos.telefono) datos.telefono = normalizarTelefono(datos.telefono) || datos.telefono;
     datos.apellido = datos.apellido ?? '';
-    const boton = form.querySelector('button');
+    const boton = form.querySelector('button[type=submit]');
     boton.disabled = true; error.hidden = true;
 
     const nuevoId = id || crypto.randomUUID();
