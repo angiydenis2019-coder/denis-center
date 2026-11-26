@@ -146,7 +146,7 @@ export async function vistaAjustes(app) {
       <p id="respaldo-msg" class="sub" hidden></p>
     </div>` : ''}
 
-    <p class="sub version">DC ${VERSION_APP}</p>
+    <p class="sub version"><a href="#/terminos">Términos y Condiciones y Privacidad</a>${miPerfilTerminos(yo)}<br>DC ${VERSION_APP}</p>
   `;
 
   app.querySelectorAll('[data-tema-op]').forEach((b) => b.addEventListener('click', () => {
@@ -259,6 +259,10 @@ async function subirLogo(archivo) {
   const { error } = await sb.storage.from('logos').upload(ruta, blob, { contentType: 'image/png', upsert: true });
   if (error) throw error;
   return sb.storage.from('logos').getPublicUrl(ruta).data.publicUrl;
+}
+
+function miPerfilTerminos(yo) {
+  return yo?.terminos_aceptados_en ? ` · aceptados el ${fecha(yo.terminos_aceptados_en)}` : '';
 }
 
 function mostrar(el, texto, esError) {

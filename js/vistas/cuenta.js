@@ -1,6 +1,7 @@
 // Pantallas de la cuenta: elegir contraseña propia y cuenta suspendida
 import { sb } from '../supabase.js';
 import { negocio } from '../negocio.js';
+import { prepararSalida } from '../sincronizar.js';
 import { esc, mensajeError } from '../util.js';
 
 // Primera vez (contraseña provisoria) o cuando el usuario quiere cambiarla
@@ -31,7 +32,7 @@ export function vistaCambiarClave(app, { voluntario = false, alTerminar = null }
   app.querySelector('#ver-clave').addEventListener('change', (e) => {
     f.clave1.type = f.clave2.type = e.target.checked ? 'text' : 'password';
   });
-  app.querySelector('#salir-clave')?.addEventListener('click', (e) => { e.preventDefault(); sb.auth.signOut(); });
+  app.querySelector('#salir-clave')?.addEventListener('click', async (e) => { e.preventDefault(); if (await prepararSalida()) sb.auth.signOut(); });
 
   f.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -61,5 +62,5 @@ export function vistaSuspendida(app) {
       <p class="sub">Comunicate con el administrador para reactivarla.</p>
       <div class="botones"><button class="btn secundario ancho" id="btn-salir-susp" type="button">Salir</button></div>
     </div>`;
-  app.querySelector('#btn-salir-susp').addEventListener('click', () => sb.auth.signOut());
+  app.querySelector('#btn-salir-susp').addEventListener('click', async () => { if (await prepararSalida()) sb.auth.signOut(); });
 }

@@ -148,3 +148,10 @@ iconos/
 3. Supabase → Edge Functions → Deploy a new function → Via Editor, nombre `admin-usuarios`,
    pegar `supabase/functions/admin-usuarios/index.ts`, desactivar **Verify JWT** (la función
    verifica sola que sea el superadministrador) y Deploy.
+
+## Versión 2.1 — Términos y Condiciones
+- La primera vez que entra, cada técnico tiene que leer y aceptar los Términos y Condiciones y la
+  Política de Privacidad (texto en `js/terminos.js`). Queda constancia de quién, qué versión, cuándo y
+  desde qué dispositivo (tabla `aceptaciones_terminos`).
+- Si se cambia el texto, subir `VERSION_TERMINOS` y a todos se les vuelve a pedir.
+- Instalación: ejecutar `sql/09_terminos.sql` en Supabase → SQL Editor.

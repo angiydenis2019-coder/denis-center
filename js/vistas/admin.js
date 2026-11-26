@@ -134,6 +134,7 @@ async function pintarLista(app, zona) {
       <div class="sub">${esc(n.tecnico || '')}${n.email ? ' · ' + esc(n.email) : ''}</div>
       <div class="sub">${Number(n.clientes)} clientes · ${Number(n.trabajos)} trabajos · ${Number(n.presupuestos)} presupuestos · ${Number(n.fotos)} fotos</div>
       <div class="sub">Alta: ${fecha(n.creado_en)} · Último ingreso: ${n.ultimo_ingreso ? fechaHora(n.ultimo_ingreso) : 'nunca'}</div>
+      ${n.es_mio || !('terminos_version' in n) ? '' : `<div class="sub">Términos: ${n.terminos_aceptados_en ? `v${esc(n.terminos_version)} aceptados el ${fechaHora(n.terminos_aceptados_en)}` : '<b>todavía no aceptó</b>'}</div>`}
       ${n.es_mio ? '' : `<div class="acciones">
         <button class="btn secundario" type="button" data-accion="clave">${ic('actualizar', 16)} Nueva contraseña</button>
         ${n.activo

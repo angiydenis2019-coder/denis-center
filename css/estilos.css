@@ -424,3 +424,12 @@ a.tarjeta.agenda-item { display: flex; }
 .etiqueta-estado.provisoria { background: #fff2dc; color: #8a5300; }
 .negocio-fila .acciones { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; }
 .negocio-fila .acciones .btn { padding: 8px 12px; min-height: 40px; font-size: .9rem; }
+
+/* ---- Términos y condiciones ---- */
+.terminos { line-height: 1.55; font-size: .95rem; }
+.terminos h2 { margin-top: 0; font-size: 1.15rem; }
+.terminos h3 { font-size: 1rem; margin: 18px 0 6px; }
+.terminos p, .terminos li { margin: 6px 0; }
+.terminos ul { padding-left: 20px; }
+.acepto { align-items: flex-start; gap: 12px; cursor: pointer; font-weight: 500; justify-content: flex-start; }
+.acepto input { width: 24px; height: 24px; flex: none; margin-top: 2px; }

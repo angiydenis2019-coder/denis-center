@@ -13,6 +13,9 @@ import { vistaPresupuestos, vistaPresupuestoDetalle, vistaPresupuestoFormulario 
 import { cargarNegocio, negocio, negocioSuspendido, debeCambiarClave, esSuperadmin, logoNegocio, olvidarNegocio } from './negocio.js';
 import { vistaSuspendida, vistaCambiarClave } from './vistas/cuenta.js';
 import { vistaAdmin } from './vistas/admin.js';
+import { vistaTerminos } from './vistas/terminos.js';
+import { VERSION_TERMINOS } from './terminos.js';
+import { miPerfil, esMultinegocio } from './negocio.js';
 import { iniciarSincronizacion, prepararSalida, pedirSincronizacion } from './sincronizar.js';
 import { esc } from './util.js';
 import { siguienteTema, temaActual, aplicarTema } from './tema.js';
@@ -49,6 +52,7 @@ const rutas = {
   'recibo':         (id) => vistaRecibo(app, id),
   'admin':          () => vistaAdmin(app),
   'cambiar-clave':  () => vistaCambiarClave(app, { voluntario: true }),
+  'terminos':       () => vistaTerminos(app),
   'presupuesto':    (id) => vistaPresupuestoDetalle(app, id),
   'presupuesto-nuevo': (clienteId, equipoId) => vistaPresupuestoFormulario(app, { clienteId, equipoId }),
   'presupuesto-editar': (id) => vistaPresupuestoFormulario(app, { id }),
@@ -61,6 +65,10 @@ async function navegar() {
       <p>Abrí <b>js/config.js</b> y pegá la URL y la clave pública de tu proyecto de Supabase.</p></div>`;
     return;
   }
+  if (!sesion && location.hash.startsWith('#/terminos')) {
+    nav.hidden = true; fab.hidden = true;
+    return vistaTerminos(app);
+  }
   if (!sesion) {
     nav.hidden = true; btnSalir.hidden = true; btnTema.hidden = true; fab.hidden = true;
     document.body.classList.remove('con-fab');
@@ -71,10 +79,16 @@ async function navegar() {
   await negocioCargado;
   pintarMarca();
 
-  // Cuenta suspendida por el administrador, o contraseña provisoria sin cambiar
-  if (negocioSuspendido() || debeCambiarClave()) {
+  // Cuenta suspendida, términos sin aceptar o contraseña provisoria sin cambiar
+  const yo = miPerfil();
+  const faltanTerminos = esMultinegocio() && yo && !yo.es_superadmin && ('terminos_version' in yo) && yo.terminos_version !== VERSION_TERMINOS;
+  if (negocioSuspendido() || faltanTerminos || debeCambiarClave()) {
     nav.hidden = true; fab.hidden = true; document.body.classList.remove('con-fab');
-    return negocioSuspendido() ? vistaSuspendida(app) : vistaCambiarClave(app, { alTerminar: () => { negocioCargado = null; location.hash = '#/inicio'; navegar(); } });
+    const seguir = () => { negocioCargado = null; location.hash = '#/inicio'; navegar(); };
+    window.scrollTo(0, 0);
+    if (negocioSuspendido()) return vistaSuspendida(app);
+    if (faltanTerminos) return vistaTerminos(app, { aceptar: true, versionAnterior: yo.terminos_version, alTerminar: seguir });
+    return vistaCambiarClave(app, { alTerminar: seguir });
   }
   arrancarSync();
 
@@ -83,7 +97,7 @@ async function navegar() {
   if (ruta === 'admin' && !esSuperadmin()) ruta = 'inicio';
   nav.querySelectorAll('a').forEach((a) => {
     const r = a.dataset.ruta;
-    a.classList.toggle('activo', r === ruta || (r === 'clientes' && /^(cliente|equipo|trabajo|presupuesto-|presupuesto$|recibo)/.test(ruta)) || (r === 'ajustes' && /^(precios|resumen|presupuestos|papelera|admin|cambiar-clave)/.test(ruta)));
+    a.classList.toggle('activo', r === ruta || (r === 'clientes' && /^(cliente|equipo|trabajo|presupuesto-|presupuesto$|recibo)/.test(ruta)) || (r === 'ajustes' && /^(precios|resumen|presupuestos|papelera|admin|cambiar-clave|terminos)/.test(ruta)));
   });
 
   fab.hidden = !['inicio', 'agenda', 'clientes', 'cliente', 'equipo'].includes(ruta);
