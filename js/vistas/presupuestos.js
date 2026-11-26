@@ -9,10 +9,10 @@ const ESTADOS = { borrador: 'Borrador', enviado: 'Enviado', aceptado: 'Aceptado'
 const CLASE = { borrador: 'vencida', enviado: 'agendado', aceptado: 'pagado', rechazado: 'debe' };
 
 const sumarDias = (iso, n) => { const d = new Date(iso); d.setDate(d.getDate() + n); return d; };
-const vence = (p) => sumarDias(p.fecha, Number(p.validez_dias) || 15);
+export const vence = (p) => sumarDias(p.fecha, Number(p.validez_dias) || 15);
 const vencido = (p) => p.estado === 'enviado' && vence(p) < new Date();
-const numeroTxt = (p) => (p.numero ? `N° ${String(p.numero).padStart(4, '0')}` : 'sin número aún');
-const totalDe = (p, items) => Number(p.mano_obra || 0) + items.reduce((a, i) => a + Number(i.cantidad) * Number(i.precio_unitario), 0);
+export const numeroTxt = (p) => (p.numero ? `N° ${String(p.numero).padStart(4, '0')}` : 'sin número aún');
+export const totalDe = (p, items) => Number(p.mano_obra || 0) + items.reduce((a, i) => a + Number(i.cantidad) * Number(i.precio_unitario), 0);
 
 export function etiquetaPresupuesto(p) {
   return vencido(p) ? '<span class="etiqueta vencida">Vencido</span>'
@@ -133,7 +133,8 @@ export async function vistaPresupuestoDetalle(app, id) {
     </div>
 
     <div class="botones">
-      ${wa && p.estado !== 'rechazado' ? `<a class="btn whatsapp" id="btn-enviar" href="${esc(wa)}" target="_blank" rel="noopener">${ic('chat', 18)} ${p.estado === 'borrador' ? 'Enviar por WhatsApp' : 'Reenviar'}</a>` : ''}
+      ${p.estado !== 'rechazado' ? `<a class="btn whatsapp" href="#/presupuesto-doc/${esc(p.id)}">${ic('descargar', 18)} Presupuesto para el cliente (imagen o PDF)</a>` : ''}
+      ${wa && p.estado !== 'rechazado' ? `<a class="btn secundario" id="btn-enviar" href="${esc(wa)}" target="_blank" rel="noopener">${ic('chat', 18)} ${p.estado === 'borrador' ? 'Enviar como texto' : 'Reenviar como texto'}</a>` : ''}
       ${abierto ? `<a class="btn secundario" href="#/presupuesto-editar/${esc(p.id)}">${ic('editar', 18)} Editar</a>` : ''}
     </div>
     ${abierto ? `

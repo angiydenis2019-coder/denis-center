@@ -10,6 +10,7 @@ import { vistaAgenda } from './vistas/agenda.js';
 import { vistaPrecios } from './vistas/precios.js';
 import { vistaResumen } from './vistas/resumen.js';
 import { vistaPresupuestos, vistaPresupuestoDetalle, vistaPresupuestoFormulario } from './vistas/presupuestos.js';
+import { vistaPresupuestoDoc } from './vistas/presupuesto-doc.js';
 import { cargarNegocio, negocio, negocioSuspendido, debeCambiarClave, esSuperadmin, logoNegocio, olvidarNegocio } from './negocio.js';
 import { vistaSuspendida, vistaCambiarClave } from './vistas/cuenta.js';
 import { vistaAdmin } from './vistas/admin.js';
@@ -55,6 +56,7 @@ const rutas = {
   'cambiar-clave':  () => vistaCambiarClave(app, { voluntario: true }),
   'terminos':       () => vistaTerminos(app),
   'presupuesto':    (id) => vistaPresupuestoDetalle(app, id),
+  'presupuesto-doc': (id) => vistaPresupuestoDoc(app, id),
   'presupuesto-nuevo': (clienteId, equipoId) => vistaPresupuestoFormulario(app, { clienteId, equipoId }),
   'presupuesto-editar': (id) => vistaPresupuestoFormulario(app, { id }),
   'trabajo-editar': (id, extra) => vistaTrabajoFormulario(app, { id, completar: extra === 'completar' }),

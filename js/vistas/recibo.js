@@ -18,7 +18,7 @@ export const numeroRecibo = (t) => {
 
 // Logo del técnico (el que subió en Ajustes). Sin logo, se escribe el nombre del negocio.
 const logos = new Map();
-function cargarLogo(url) {
+export function cargarLogo(url) {
   if (!url) return Promise.resolve(null);
   if (logos.has(url)) return Promise.resolve(logos.get(url));
   return new Promise((ok) => {
@@ -31,7 +31,7 @@ function cargarLogo(url) {
 }
 
 // Corta un texto en renglones que entren en "ancho"
-function renglones(ctx, texto, ancho) {
+export function renglones(ctx, texto, ancho) {
   const palabras = String(texto || '').split(/\s+/).filter(Boolean);
   const lineas = [];
   let actual = '';
