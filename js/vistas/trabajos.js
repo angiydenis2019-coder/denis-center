@@ -7,7 +7,7 @@ import { cargarPrecios, datalistRepuestos, precioDe } from './precios.js';
 import { negocio, tieneAlias, mensajeAlias, activarCopiarAlias, datosTransferencia } from '../negocio.js';
 import {
   esc, pesos, fecha, fechaHora, nombreCompleto, datosFormulario, descEquipo, linkWhatsApp,
-  etiquetaCobro, etiquetaGarantia, mensajeError, aInputFecha, deInputFecha, FORMAS_PAGO,
+  etiquetaCobro, etiquetaGarantia, textoGarantia, diasGarantia, mensajeError, aInputFecha, deInputFecha, FORMAS_PAGO,
 } from '../util.js';
 
 // ---------------------------------------------------------------------
@@ -169,7 +169,8 @@ function textoComprobante(t) {
     l.push(`*Saldo pendiente: ${pesos(t.saldo)}*`);
     if (tieneAlias()) l.push('', 'Para transferir:', datosTransferencia(), '');
   }
-  l.push(`Garantía: ${n.garantiaDias} días, hasta el ${fecha(t.garantia_hasta)}.`, '');
+  if (textoGarantia(t)) l.push(`Garantía: ${textoGarantia(t)}.`);
+  l.push('');
   if (n.pie_comprobante) l.push(n.pie_comprobante);
   l.push([n.tecnico, n.telefono && `Tel. ${n.telefono}`, n.direccion].filter(Boolean).join(' · '));
   return l.join('\n');
@@ -249,6 +250,12 @@ export async function vistaTrabajoFormulario(app, { id = null, clienteId = null,
         <textarea id="trabajo_realizado" name="trabajo_realizado" placeholder="Ej: cambio de capacitor y carga de gas">${v('trabajo_realizado')}</textarea>
         <label for="mano_obra">Mano de obra ($)</label>
         <input id="mano_obra" name="mano_obra" type="number" min="0" step="any" value="${Number(t.mano_obra) || ''}">
+        <div id="campo-garantia" hidden>
+          <label for="garantia_dias">Garantía (días) <span class="ayuda">— 0 = sin garantía</span></label>
+          <input id="garantia_dias" name="garantia_dias" type="number" min="0" max="3650" step="1" inputmode="numeric" value="${diasGarantia(t)}">
+          <div class="chips-garantia">${[[0, 'Sin garantía'], [30, '30'], [60, '60'], [90, '90'], [180, '6 meses'], [365, '1 año']]
+            .map(([d, txt]) => `<button type="button" class="chip" data-dias="${d}">${txt}</button>`).join('')}</div>
+        </div>
         ${conExtras ? `
         <label>Repuestos usados</label>
         ${datalistRepuestos('dl-rep-form', precios)}
@@ -355,6 +362,22 @@ export async function vistaTrabajoFormulario(app, { id = null, clienteId = null,
   form.querySelector('#cobre-todo')?.addEventListener('click', () => { form.cobrado.value = calcularTotal() || ''; });
   form.mano_obra.addEventListener('input', calcularTotal);
 
+  // Garantía por trabajo (solo si ya se ejecutó sql/13 en Supabase)
+  let hayGarantiaPorTrabajo = 'garantia_dias' in t;
+  if (!hayGarantiaPorTrabajo) {
+    const { error: sinColumna } = await sb.from('trabajos').select('garantia_dias').limit(1);
+    hayGarantiaPorTrabajo = !sinColumna;
+  }
+  const campoGarantia = form.querySelector('#campo-garantia');
+  if (campoGarantia && hayGarantiaPorTrabajo) {
+    campoGarantia.hidden = false;
+    const marcar = () => campoGarantia.querySelectorAll('.chip').forEach((c) =>
+      c.classList.toggle('activo', Number(c.dataset.dias) === Number(form.garantia_dias.value)));
+    campoGarantia.querySelectorAll('.chip').forEach((c) => c.addEventListener('click', () => { form.garantia_dias.value = c.dataset.dias; marcar(); }));
+    form.garantia_dias.addEventListener('input', marcar);
+    marcar();
+  }
+
   form.addEventListener('submit', async (ev) => {
     ev.preventDefault();
     const d = datosFormulario(form);
@@ -369,6 +392,7 @@ export async function vistaTrabajoFormulario(app, { id = null, clienteId = null,
       mano_obra: Number(d.mano_obra) || 0,
       notas: d.notas,
     };
+    if (hayGarantiaPorTrabajo) datos.garantia_dias = Math.max(0, Math.min(3650, Math.round(Number(d.garantia_dias) || 0)));
     const boton = form.querySelector('button[type=submit]');
     boton.disabled = true; error.hidden = true;
 

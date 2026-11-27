@@ -145,7 +145,8 @@ async function trabajosResumen() {
     const pagado = sumaPag[t.id] || 0;
     const saldo = total - pagado;
     const realizado = t.estado === 'realizado' && t.fecha_realizado;
-    const garantia = realizado ? sumarDiasFecha(fechaLocal(t.fecha_realizado), GARANTIA_DIAS) : null;
+    const dias = t.garantia_dias == null ? GARANTIA_DIAS : Number(t.garantia_dias);
+    const garantia = realizado && dias > 0 ? sumarDiasFecha(fechaLocal(t.fecha_realizado), dias) : null;
     return {
       ...t,
       cliente_nombre: c.nombre, cliente_apellido: c.apellido, cliente_telefono: c.telefono,
@@ -153,7 +154,7 @@ async function trabajosResumen() {
       total_repuestos: totalRep, total, pagado, saldo,
       estado_cobro: t.estado !== 'realizado' ? null : saldo <= 0 ? 'pagado' : pagado > 0 ? 'parcial' : 'debe',
       garantia_hasta: garantia,
-      en_garantia: realizado ? hoy <= garantia : false,
+      en_garantia: realizado && garantia ? hoy <= garantia : false,
     };
   });
 }

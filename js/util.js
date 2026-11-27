@@ -50,8 +50,19 @@ export function etiquetaCobro(estado) {
   return estado ? `<span class="etiqueta ${estado}">${textos[estado]}</span>` : '';
 }
 
+// Días de garantía del trabajo (los trabajos viejos, sin el dato, tienen 90)
+export const diasGarantia = (t) => (t.garantia_dias == null ? 90 : Number(t.garantia_dias));
+
+// "90 días, hasta el 25/02/2027" o null si no tiene garantía
+export function textoGarantia(t) {
+  if (t.estado !== 'realizado' || !diasGarantia(t) || !t.garantia_hasta) return null;
+  const d = diasGarantia(t);
+  return `${d} ${d === 1 ? 'día' : 'días'}, hasta el ${fecha(t.garantia_hasta)}`;
+}
+
 export function etiquetaGarantia(t) {
   if (t.estado !== 'realizado') return '';
+  if (!diasGarantia(t)) return '<span class="etiqueta">Sin garantía</span>';
   return t.en_garantia
     ? `<span class="etiqueta garantia">Garantía hasta ${fecha(t.garantia_hasta)}</span>`
     : `<span class="etiqueta vencida">Garantía vencida</span>`;

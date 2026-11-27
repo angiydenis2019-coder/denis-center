@@ -478,3 +478,8 @@ a.tarjeta.agenda-item { display: flex; }
 @keyframes girar { to { transform: rotate(360deg); } }
 
 @media (max-width: 380px) { .barra-der .btn-icono { width: 38px; height: 38px; } }
+
+/* ---- Garantía por trabajo ---- */
+.chips-garantia { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 4px; }
+.chips-garantia .chip { border: 1px solid var(--borde); background: var(--superficie); color: inherit; border-radius: 99px; padding: 6px 12px; font: inherit; font-size: .85rem; cursor: pointer; }
+.chips-garantia .chip.activo { background: var(--azul); border-color: var(--azul); color: #fff; font-weight: 600; }

@@ -3,7 +3,7 @@
 import { sb } from '../supabase.js';
 import { ic } from '../iconos.js';
 import { negocio, cargarNegocio } from '../negocio.js';
-import { esc, pesos, fecha, nombreCompleto, descEquipo, FORMAS_PAGO } from '../util.js';
+import { esc, pesos, fecha, nombreCompleto, descEquipo, FORMAS_PAGO, textoGarantia } from '../util.js';
 
 const ANCHO = 1080;
 const AZUL = '#0b3d7a', TEXTO = '#12233d', GRIS = '#5a6b82', VERDE = '#1e7a45', NARANJA = '#a8470b';
@@ -193,7 +193,7 @@ export async function vistaRecibo(app, id) {
     saldo: pesos(t.saldo),
     pagadoTodo: Number(t.saldo) <= 0,
     formas,
-    garantia: t.garantia_hasta ? `${n.garantiaDias || 90} días, hasta el ${fecha(t.garantia_hasta)}` : null,
+    garantia: textoGarantia(t),
     pie: n.pie_comprobante,
     contacto: [n.tecnico, n.telefono && `Tel. ${n.telefono}`, n.direccion].filter(Boolean).join('  ·  '),
   });

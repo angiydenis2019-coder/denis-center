@@ -22,7 +22,9 @@ export async function vistaEquipoFicha(app, id) {
   const ultimo = trabajos.find((t) => t.estado === 'realizado');
   const garantia = !ultimo
     ? '<p class="vacio">Sin trabajos realizados todavía.</p>'
-    : ultimo.en_garantia
+    : !ultimo.garantia_hasta
+      ? `<div class="tarjeta banner">Último trabajo sin garantía</div>`
+      : ultimo.en_garantia
       ? `<div class="tarjeta banner ok">${ic('escudo', 18)} <b>En garantía</b> hasta el ${esc(fecha(ultimo.garantia_hasta))}<div class="sub">Por: ${esc(ultimo.trabajo_realizado || 'trabajo del ' + fecha(ultimo.fecha_realizado))}</div></div>`
       : `<div class="tarjeta banner vencida">Garantía vencida el ${esc(fecha(ultimo.garantia_hasta))}</div>`;
 
