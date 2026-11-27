@@ -214,7 +214,6 @@ export async function vistaPresupuestoDoc(app, id) {
       pago: alias.length ? ['Efectivo o transferencia.', ...alias] : ['Efectivo o transferencia.'],
       condiciones: [
         `Presupuesto válido por ${Number(p.validez_dias) || 15} días, hasta el ${fecha(vence(p).toISOString())}. Los precios pueden variar después de esa fecha.`,
-        `El trabajo realizado tiene ${n.garantiaDias || 90} días de garantía.`,
         p.notas,
       ].filter(Boolean),
       pie: n.pie_comprobante,

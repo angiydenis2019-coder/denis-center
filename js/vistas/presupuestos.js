@@ -265,7 +265,7 @@ export async function vistaPresupuestoFormulario(app, { id = null, clienteId = n
 
       <label for="validez_dias">Válido por (días)</label>
       <input id="validez_dias" name="validez_dias" type="number" min="1" max="365" value="${Number(p.validez_dias) || 15}">
-      <label for="notas">Notas para el cliente <span class="ayuda">— ej: incluye garantía de 90 días</span></label>
+      <label for="notas">Notas para el cliente <span class="ayuda">— ej: garantía de 60 días sobre la mano de obra (si no ponés nada, no se menciona garantía)</span></label>
       <textarea id="notas" name="notas">${v('notas')}</textarea>
 
       <div class="botones">
