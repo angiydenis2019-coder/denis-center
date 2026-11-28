@@ -64,3 +64,38 @@ export function vistaSuspendida(app) {
     </div>`;
   app.querySelector('#btn-salir-susp').addEventListener('click', async () => { if (await prepararSalida()) sb.auth.signOut(); });
 }
+
+// "¿Olvidaste tu contraseña?" (sin sesión): avisa al administrador
+export function vistaOlvideClave(app) {
+  app.innerHTML = `
+    <div class="login tarjeta">
+      <img class="logo-login" src="iconos/emblema.png" alt="DC" style="max-width:140px">
+      <h1>¿Olvidaste tu contraseña?</h1>
+      <p>Escribí el correo con el que entrás a DC. Le llega un aviso al administrador y te manda una <b>contraseña provisoria</b> por WhatsApp.</p>
+      <form id="f-olvide">
+        <label for="olv-email">Correo</label>
+        <input id="olv-email" name="email" type="email" autocomplete="username" autocapitalize="none" required>
+        <div class="botones"><button class="btn ancho" type="submit">Pedir contraseña nueva</button></div>
+        <p class="msg error" hidden></p>
+      </form>
+      <p class="sub" style="text-align:center"><a href="#/">← Volver a ingresar</a></p>
+    </div>`;
+  const f = app.querySelector('#f-olvide');
+  const msg = f.querySelector('.msg');
+  f.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!navigator.onLine) { msg.textContent = 'Necesitás señal para pedir la contraseña.'; msg.hidden = false; return; }
+    const email = f.email.value.trim().toLowerCase();
+    const b = f.querySelector('button[type=submit]'); b.disabled = true; b.textContent = 'Enviando…';
+    try { await sb.rpc('pedir_clave', { p_email: email, p_dispositivo: navigator.userAgent }); } catch { /* sigue igual */ }
+    sb.functions.invoke('avisos', { body: { accion: 'pedido-clave', email } }).catch(() => {});
+    // Para el administrador: además le llega un correo para restablecerla
+    sb.auth.resetPasswordForEmail(email, { redirectTo: location.origin + location.pathname }).catch(() => {});
+    app.querySelector('.login').innerHTML = `
+      <img class="logo-login" src="iconos/emblema.png" alt="DC" style="max-width:140px">
+      <h1>✔ Pedido enviado</h1>
+      <p>Si ese correo tiene cuenta en DC, el administrador ya recibió el aviso y te va a mandar una contraseña provisoria por WhatsApp.</p>
+      <p class="sub">Si sos el administrador, revisá tu correo: te llega un enlace para elegir una contraseña nueva.</p>
+      <p class="sub" style="text-align:center"><a href="#/">← Volver a ingresar</a></p>`;
+  });
+}

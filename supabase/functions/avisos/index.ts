@@ -1,6 +1,7 @@
 // DC — Función "avisos": manda avisos (notificaciones) al celular del superadministrador
 //   clave:     devuelve la clave pública para activar los avisos (la crea la primera vez)
 //   solicitud: un técnico completó el formulario de invitación -> aviso al superadministrador
+//   pedido-clave: un técnico pidió contraseña nueva -> aviso al superadministrador
 //   prueba:    aviso de prueba a los celulares del usuario conectado
 // Se pega completa en Supabase > Edge Functions > Deploy a new function > Via Editor (nombre: avisos)
 // y se desactiva "Verify JWT" (la usan también técnicos que todavía no tienen cuenta).
@@ -160,6 +161,29 @@ async function manejar(req) {
       cuerpo: `${inv.apellido}, ${inv.nombre}${inv.localidad ? ' (' + inv.localidad + ')' : ''} completó sus datos. Tocá para aprobar.`,
       url: './#/admin',
       etiqueta: 'solicitud-' + inv.id,
+    });
+    return responder({ ok: true, enviados });
+  }
+
+  if (cuerpo.accion === 'pedido-clave') {
+    // Un técnico tocó "¿Olvidaste tu contraseña?": avisar una sola vez por pedido reciente
+    const email = String(cuerpo.email || '').trim().toLowerCase();
+    const { data: perfil } = await admin.from('perfiles').select('id, nombre, negocio_id').ilike('email', email).maybeSingle();
+    if (!perfil) return responder({ ok: true, enviados: 0 });
+    const hace = new Date(Date.now() - 5 * 60 * 1000).toISOString();
+    const { data: pedido } = await admin.from('pedidos_clave').select('id').eq('usuario_id', perfil.id)
+      .eq('estado', 'pendiente').is('avisado_en', null).gte('creado_en', hace).maybeSingle();
+    if (!pedido) return responder({ ok: true, enviados: 0 });
+    await admin.from('pedidos_clave').update({ avisado_en: new Date().toISOString() }).eq('id', pedido.id);
+    const { data: neg } = await admin.from('negocios').select('nombre, admin_apellido, admin_nombre').eq('id', perfil.negocio_id).maybeSingle();
+    const quien = neg?.admin_apellido ? `${neg.admin_apellido}, ${neg.admin_nombre || ''}` : (perfil.nombre || email);
+    const { data: supers } = await admin.from('perfiles').select('id').eq('es_superadmin', true).eq('activo', true);
+    const { data: subs } = await admin.from('suscripciones_push').select('*').in('usuario_id', (supers || []).map((p) => p.id));
+    const enviados = await avisarA(admin, subs || [], {
+      titulo: 'Pedido de contraseña en DC',
+      cuerpo: `${quien}${neg?.nombre ? ' (' + neg.nombre + ')' : ''} olvidó su contraseña. Tocá para darle una provisoria.`,
+      url: './#/admin',
+      etiqueta: 'clave-' + pedido.id,
     });
     return responder({ ok: true, enviados });
   }

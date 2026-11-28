@@ -14,6 +14,7 @@ export function vistaLogin(app) {
         <div class="botones"><button class="btn ancho" type="submit">Entrar</button></div>
         <p id="login-error" class="error" hidden></p>
       </form>
+      <p class="sub" style="text-align:center"><a href="#/olvide-clave">¿Olvidaste tu contraseña?</a></p>
       <p class="sub" style="text-align:center"><a href="#/terminos/desde-login">Términos, condiciones y privacidad</a></p>
     </div>`;
 

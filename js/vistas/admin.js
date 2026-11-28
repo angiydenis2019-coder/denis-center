@@ -34,8 +34,16 @@ async function llamar(cuerpo) {
   return data;
 }
 
-function tarjetaClave({ titulo, nombre, email, clave, telefono }) {
-  const msj = mensajeBienvenida({ nombre, email, clave });
+function mensajeClaveNueva({ nombre, email, clave }) {
+  return `Hola ${nombre || ''}, te generé una *contraseña provisoria* para entrar a *DC*.\n\n`
+    + `1) Abrí la app: ${linkApp()}\n`
+    + `2) Entrá con:\n   Correo: ${email}\n   Contraseña provisoria: *${clave}*\n`
+    + `3) La app te va a pedir que elijas una contraseña nueva. Anotala en un lugar seguro.\n\n`
+    + `Tus datos siguen todos guardados. Consultas: ${CONTACTO_EMAIL}`;
+}
+
+function tarjetaClave({ titulo, nombre, email, clave, telefono, tipo = 'alta' }) {
+  const msj = tipo === 'nueva' ? mensajeClaveNueva({ nombre, email, clave }) : mensajeBienvenida({ nombre, email, clave });
   return `
     <div class="tarjeta banner" id="resultado-clave">
       <h3 style="margin-top:0">${ic('check', 18)} ${esc(titulo)}</h3>
@@ -78,6 +86,7 @@ export async function vistaAdmin(app) {
       </form>
     </div>
 
+    <div id="zona-pedidos-clave"></div>
     <div id="zona-solicitudes"></div>
 
     <div class="tarjeta" id="caja-avisos"><p class="vacio">Revisando avisos…</p></div>
@@ -171,7 +180,7 @@ export async function vistaAdmin(app) {
     await pintarInvitaciones(app, zona);
   });
 
-  await Promise.all([pintarInvitaciones(app, zona), pintarLista(app, zona), pintarAvisos(app)]);
+  await Promise.all([pintarPedidosClave(app, zona), pintarInvitaciones(app, zona), pintarLista(app, zona), pintarAvisos(app)]);
 }
 
 const TEXTO_AVISOS = {
@@ -222,6 +231,47 @@ async function pintarAvisos(app) {
   caja.querySelector('#btn-avisos-off')?.addEventListener('click', async () => {
     await desactivarAvisos().catch(() => {});
     await pintarAvisos(app);
+  });
+}
+
+// Técnicos que tocaron "¿Olvidaste tu contraseña?"
+async function pintarPedidosClave(app, zona) {
+  const caja = app.querySelector('#zona-pedidos-clave');
+  const { data, error } = await sb.rpc('admin_pedidos_clave');
+  if (error || !data?.length) { caja.innerHTML = ''; return; }
+  caja.innerHTML = `
+    <h2>Pidieron contraseña nueva <span class="etiqueta-estado provisoria">${data.length}</span></h2>
+    <div class="tarjeta">${data.map((k) => `
+      <div class="negocio-fila linea" data-pedido="${esc(k.id)}">
+        <div class="titulo"><b>${esc(k.apellido ? `${k.apellido}, ${k.nombre_tecnico || ''}` : k.nombre || k.email)}</b></div>
+        <div class="sub">${esc(k.negocio || '')}${k.negocio ? ' · ' : ''}${esc(k.email)}</div>
+        <div class="sub">Lo pidió el ${fechaHora(k.creado_en)}</div>
+        <div class="acciones">
+          <button class="btn" type="button" data-accion="dar">${ic('actualizar', 16)} Dar contraseña provisoria</button>
+          <button class="btn-texto" type="button" data-accion="descartar">Descartar</button>
+        </div>
+      </div>`).join('')}</div>
+    <p class="msg sub" hidden></p>`;
+  const avisar = (t, err) => { const m = caja.querySelector(':scope > .msg'); m.hidden = false; m.textContent = t; m.classList.toggle('error', !!err); };
+  caja.querySelectorAll('[data-pedido]').forEach((fila) => {
+    const k = data.find((x) => x.id === fila.dataset.pedido);
+    const nombre = k.nombre_tecnico || k.nombre || '';
+    fila.querySelector('[data-accion=dar]').addEventListener('click', async (e) => {
+      const b = e.currentTarget; b.disabled = true; b.textContent = 'Generando…';
+      try {
+        const r = await llamar({ accion: 'restablecer', usuario_id: k.usuario_id });
+        await sb.rpc('admin_resolver_pedido_clave', { p_id: k.id, p_estado: 'resuelto' });
+        zona.innerHTML = tarjetaClave({ titulo: `Contraseña provisoria para ${k.apellido ? k.apellido + ', ' : ''}${nombre}`, nombre, email: k.email, clave: r.clave, telefono: k.telefono, tipo: 'nueva' });
+        activarCopiar(zona);
+        window.scrollTo(0, 0);
+        await Promise.all([pintarPedidosClave(app, zona), pintarLista(app, zona)]);
+      } catch (err) { avisar(err.message, true); b.disabled = false; b.textContent = 'Dar contraseña provisoria'; }
+    });
+    fila.querySelector('[data-accion=descartar]').addEventListener('click', async () => {
+      if (!confirm('¿Descartar este pedido? No se cambia ninguna contraseña.')) return;
+      await sb.rpc('admin_resolver_pedido_clave', { p_id: k.id, p_estado: 'descartado' });
+      await pintarPedidosClave(app, zona);
+    });
   });
 }
 
@@ -372,7 +422,7 @@ async function pintarLista(app, zona) {
       const b = e.currentTarget; b.disabled = true;
       try {
         const r = await llamar({ accion: 'restablecer', usuario_id: fila.dataset.usuario });
-        zona.innerHTML = tarjetaClave({ titulo: `Contraseña nueva para ${nombre}`, nombre: fila.dataset.nombre, email: fila.dataset.email, clave: r.clave, telefono: fila.dataset.tel });
+        zona.innerHTML = tarjetaClave({ titulo: `Contraseña nueva para ${nombre}`, nombre: fila.dataset.nombre, email: fila.dataset.email, clave: r.clave, telefono: fila.dataset.tel, tipo: 'nueva' });
         activarCopiar(zona);
         window.scrollTo(0, 0);
         await pintarLista(app, zona);

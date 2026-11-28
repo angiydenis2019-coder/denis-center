@@ -4,7 +4,7 @@
 // Cada vez que cambies archivos de la app, subí el número de versión.
 importScripts('./js/sw-datos.js');
 
-const VERSION = 'denis-center-v31';
+const VERSION = 'denis-center-v32';
 const ARCHIVOS = [
   './', './index.html', './manifest.json', './css/estilos.css',
   './js/app.js', './js/config.js', './js/supabase.js', './js/util.js', './js/fotos.js', './js/negocio.js',
@@ -62,7 +62,7 @@ self.addEventListener('fetch', (e) => {
     const esSubidaFoto = url.pathname.startsWith('/storage/v1/object/fotos/') && req.method === 'POST';
 
     // Panel del administrador: siempre directo a internet (nunca a la cola)
-    if (url.pathname.includes('/rpc/admin_') || url.pathname.includes('/rpc/invitacion_')) return;
+    if (url.pathname.includes('/rpc/admin_') || url.pathname.includes('/rpc/invitacion_') || url.pathname.includes('/rpc/pedir_clave')) return;
 
     // Logos de los negocios: se guardan para verlos también sin señal
     if (url.pathname.startsWith('/storage/v1/object/public/logos/') && req.method === 'GET') {

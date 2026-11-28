@@ -13,7 +13,7 @@ import { vistaPresupuestos, vistaPresupuestoDetalle, vistaPresupuestoFormulario 
 import { vistaPresupuestoDoc } from './vistas/presupuesto-doc.js';
 import { vistaGestion } from './vistas/gestion.js';
 import { cargarNegocio, negocio, negocioSuspendido, debeCambiarClave, esSuperadmin, logoNegocio, olvidarNegocio } from './negocio.js';
-import { vistaSuspendida, vistaCambiarClave } from './vistas/cuenta.js';
+import { vistaSuspendida, vistaCambiarClave, vistaOlvideClave } from './vistas/cuenta.js';
 import { vistaAdmin } from './vistas/admin.js';
 import { vistaTerminos } from './vistas/terminos.js';
 import { vistaInvitacion } from './vistas/invitacion.js';
@@ -45,6 +45,7 @@ btnRecargar.addEventListener('click', async () => {
 const fab = document.getElementById('fab');
 let sesion = null;
 let negocioCargado = null; // promesa de carga de los datos del negocio
+let recuperandoClave = false; // entró con el enlace de "olvidé mi contraseña" del correo
 
 // Rutas: #/nombre/param1/param2 (ver tabla abajo)
 const rutas = {
@@ -87,6 +88,14 @@ async function navegar() {
     nav.hidden = true; fab.hidden = true; btnSalir.hidden = true; btnTema.hidden = true;
     document.body.classList.remove('con-fab');
     return vistaInvitacion(app, location.hash.split('/')[2]);
+  }
+  if (!sesion && location.hash.startsWith('#/olvide-clave')) {
+    nav.hidden = true; fab.hidden = true;
+    return vistaOlvideClave(app);
+  }
+  if (recuperandoClave && sesion) {
+    nav.hidden = true; fab.hidden = true; document.body.classList.remove('con-fab');
+    return vistaCambiarClave(app, { alTerminar: () => { recuperandoClave = false; location.hash = '#/inicio'; navegar(); } });
   }
   if (!sesion && location.hash.startsWith('#/terminos')) {
     nav.hidden = true; fab.hidden = true;
@@ -139,13 +148,17 @@ async function navegar() {
 // Superadministrador: cuántas solicitudes de técnicos esperan aprobación
 async function avisoSolicitudes(ruta) {
   if (!navigator.onLine) return;
-  const { count, error } = await sb.from('invitaciones').select('id', { count: 'exact', head: true }).eq('estado', 'completada');
-  if (error) return;
+  const [inv, ped] = await Promise.all([
+    sb.from('invitaciones').select('id', { count: 'exact', head: true }).eq('estado', 'completada'),
+    sb.from('pedidos_clave').select('id', { count: 'exact', head: true }).eq('estado', 'pendiente'),
+  ]);
+  if (inv.error && ped.error) return;
+  const count = (inv.count || 0) + (ped.count || 0);
   const enlace = nav.querySelector('a[data-ruta=ajustes]');
   enlace?.querySelector('.globito')?.remove();
   if (count > 0) enlace?.insertAdjacentHTML('beforeend', `<span class="globito" aria-label="${count} solicitudes">${count}</span>`);
   if (ruta === 'inicio' && count > 0 && !app.querySelector('.aviso-solicitudes')) {
-    app.insertAdjacentHTML('afterbegin', `<a class="tarjeta banner aviso-solicitudes" href="#/admin">🔔 <b>${count === 1 ? 'Tenés 1 solicitud' : `Tenés ${count} solicitudes`}</b> de técnico para aprobar <span>›</span></a>`);
+    app.insertAdjacentHTML('afterbegin', `<a class="tarjeta banner aviso-solicitudes" href="#/admin">🔔 <b>${count === 1 ? 'Tenés 1 pedido' : `Tenés ${count} pedidos`}</b> de técnicos para revisar <span>›</span></a>`);
   }
 }
 
@@ -218,7 +231,8 @@ if ('serviceWorker' in navigator) {
 if (configurado) {
   const { data } = await sb.auth.getSession();
   sesion = data.session;
-  sb.auth.onAuthStateChange((_evento, nueva) => {
+  sb.auth.onAuthStateChange((evento, nueva) => {
+    if (evento === 'PASSWORD_RECOVERY') { recuperandoClave = true; sesion = nueva; navegar(); return; }
     const cambio = !!nueva !== !!sesion;
     sesion = nueva;
     if (cambio) {
